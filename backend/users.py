@@ -67,14 +67,24 @@ class Server:
     name: str
     channels: list[Channel]
     members: list[int]
+    id_owner: int
 
-    def __init__(self, id: int, name: str, channels: list[Channel], members: list[int]):
+    def __init__(self, id: int, name: str, channels: list[Channel], members: list[int], id_owner: str):
         self.id = id
         self.name = name
         self.channels = channels
-        
+        self.id_owner = id_owner
+
         self.members = members
 
+
+    def add_channel(self, name: str = ""):
+        new_id = self.channels[-1].id + 1
+        if name == "":
+            if self.user[-1:] == 's': name = f"{self.user}' channel{new_id}"
+            else:                     name = f"{self.user}'s channel{new_id}"
+        self.channels.append(Channel(new_id, name))
+        
 
 
 users = [
