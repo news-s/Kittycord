@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: __type_here_username__
+      POSTGRES_PASSWORD: __type_here_password__
+      POSTGRES_DB: __type_here_database_name__
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    depends_on: [db]
+    environment:
+      DB_USER: __type_here_username__
+      DB_PASSWORD: __type_here_password__
+      DB_HOST: db
+      DB_NAME: __type_here_database_name__
+      JWT_SECRET_KEY: __type_here_jwt_secret_key__
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app:cached
+
+volumes:
+  pgdata:

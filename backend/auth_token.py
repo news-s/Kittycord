@@ -1,10 +1,10 @@
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 from fastapi import HTTPException
-import typing
+import typing, os, dotenv
 
-SECRET_KEY = "super-secret-key"
-
+dotenv.load_dotenv()
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 
 def create_access_token(data: dict[str, typing.Any], expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
