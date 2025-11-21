@@ -3,19 +3,21 @@
     import Logo from '../assets/Logo.png';
 </script>
 
-<nav class="navbar">
-    <a class="button" href="/">
-        <img src={Logo} alt="KittyCord Logo" class="logo" />
-        Kittycord
-    </a>
+<div class="wrapper">
+    <nav class="navbar">
+        <a class="button" href="/">
+            <img src={Logo} alt="KittyCord Logo" class="logo" />
+            Kittycord
+        </a>
 
-    <div class="right-links">
-        <a class="button" href="#functions">Funkcje</a>
-        <a class="button" href="#us">Dlaczego My</a>
-        <a class="button" href="#contact">Kontakt</a>
-        <a class="login" href="/login">Zaloguj się</a>
-    </div>
-</nav>
+        <div class="right-links">
+            <a class="button" href="#functions">Funkcje</a>
+            <a class="button" href="#us">Dlaczego My</a>
+            <a class="button" href="#contact">Kontakt</a>
+            <a class="login" href="/login">Zaloguj się</a>
+        </div>
+    </nav>
+</div>
 
 <style>
     * {
@@ -24,22 +26,32 @@
         font-family: 'Inter';
     }
 
-    .navbar {
+    .wrapper {
         width: 100%;
         height: 77px;
 
         display: flex;
-        align-items: center;
         justify-content: center;
+        align-content: center;
 
         background-color: #FFFFFF;
+    }
+
+    .navbar {
+        width: 1232px;
+        height: 77px;
+
+        display: flex;
+
+        padding-left: 104px;
+        padding-right: 104px;
     }
     
     .right-links {
         display: flex;
         align-items: center;
 
-        margin-left: 626px;
+        margin-left: auto;
         gap: 32px;
     }
 
