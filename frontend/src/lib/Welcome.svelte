@@ -16,7 +16,7 @@
                 stworzonej z myślą o Tobie. <br>
             </div>
             <div class="button">
-                Otwórz discord
+                Otwórz Kittycord
                 <img src={Arrow} alt="Arrow Right"/>
             </div> 
             <div class="info">
@@ -159,7 +159,7 @@
 
         border-radius: 24px;
 
-        box-shadow: 0 30px 30px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
 
         background: linear-gradient(135deg, rgba(192, 132, 252, 0.2) 0%, rgba(244, 114, 182, 0.2) 100%);
     }
