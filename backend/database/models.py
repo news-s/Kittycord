@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ARRAY, DateTime, LargeBinary, ForeignKey
+from sqlalchemy import Column, Integer, String, ARRAY, DateTime, Boolean, LargeBinary, ForeignKey
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 Base = declarative_base()
@@ -7,11 +7,12 @@ class User(Base):
   __tablename__ = "Users"
   id = Column(Integer, primary_key=True)
   name = Column(String, nullable=False, unique=True)
-  display_name = Column(String(30))
+  display_name = Column(String(30), unique=True)
   note = Column(String(255))
   password = Column(LargeBinary)
   badges = Column(ARRAY(String))
   account_creation_date = Column(DateTime, nullable=False)
+  friends = Column(ARRAY(Integer))
 
 class User_Server(Base):
   __tablename__ = "User_Server"
@@ -27,20 +28,23 @@ class Server(Base):
   name = Column(String, nullable=False)
   owner_id = Column(Integer, ForeignKey("Users.id"), nullable=False)
   invite_link = Column(String, nullable=False, unique=True) # For localhost:2137/invite/__code__, store here only __code__
+  roles = Column(ARRAY(String))
 
 class Channel(Base):
   __tablename__ = "Channels"
   id = Column(Integer, primary_key=True)
   server_id = Column(Integer, ForeignKey("Servers.id"), nullable=False)
   name = Column(String, nullable=False)
+  role_needed = Column(String, nullable=True)
 
 class Message(Base):
     __tablename__ = "Messages"
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("Users.id"), nullable=False)
+    channel_id = Column(Integer, ForeignKey("Channels.id"))
     date = Column(DateTime, nullable=False)
     text = Column(String)
-    attachment_id = Column(String)
+    attachment_id = Column(Integer, ForeignKey("Files.id"), nullable=True)
 
 class File(Base):
     __tablename__ = "Files"
@@ -51,11 +55,13 @@ class File(Base):
 class DM(Base):
     __tablename__ = "DMs"
     id = Column(Integer, primary_key=True)
-    message_id = Column(Integer, ForeignKey("Messages.id"))
-    user_id_1 = Column(Integer, ForeignKey("Users.id"), nullable=False)
+    text = Column(String)
+    date = Column(DateTime)
+    attachment_id = Column(Integer, ForeignKey("Files.id"), nullable=True)
+    user_id_1 = Column(Integer, ForeignKey("Users.id"), nullable=False) # Author
     user_id_2 = Column(Integer, ForeignKey("Users.id"), nullable=False)
 
-class Friend(Base):
+class Friend_requests(Base):
     __tablename__ = "Friends"
     id = Column(Integer, primary_key=True)
     user_id_1 = Column(Integer, ForeignKey("Users.id"))
