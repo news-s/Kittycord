@@ -101,11 +101,15 @@ servers = [
                 Channel(1, "channel1"),
                 Channel(2, "channel2"),
             ],
-           [1, 2, 3, 4]),
+           [1, 2, 3, 4],
+           1
+    ),
     Server(2, "server2",
            [
                 Channel(3, "channel3"),
                 Channel(4, "channel4")
            ],
-           [1, 2, 3, 4]),
+           [1, 2, 3, 4],
+           1
+    ),
 ]
