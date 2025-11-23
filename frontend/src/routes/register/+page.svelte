@@ -1,9 +1,10 @@
 <script>
     let username = $state("");
     let password = $state("");
+    let repassword = $state("");
 
-    async function login() {
-        const res = await fetch('http://localhost:8000/login', {
+    async function register() {
+        const res = await fetch('http://localhost:8000/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -17,24 +18,33 @@
 
     async function onsubmit(event) {
       event.preventDefault();
-      let data = await login();
-      
-      console.log('Zalogowano pomyślnie');
-      console.log(data.access_token);
+
+      if(password !== repassword) {
+        console.warn("Hasła nie są identyczne");
+        return;
+      }
+        
+
+      await register();
+      console.log('Zarejestrowano pomyślnie');
+
+       window.location.href = '/thanks';
     } 
 </script>
 
-<div>Zaloguj Sie</div>
-
+<div>Zarejestruj Się</div>
 <div>
     <form {onsubmit}>
         <label for="username">Username:</label> <br>
         <input type="text" id="username" name="username" bind:value={username} required /> <br>
-    
+
         <label for="password">Hasło:</label> <br>
         <input type="password" id="password" name="password" bind:value={password} required /> <br>
     
-        <button type="submit">Zaloguj się</button>
+        <label for="repassword">Powtórz hasło:</label> <br>
+        <input type="repassword" id="repassword" name="repassword" bind:value={repassword} required /> <br>
+    
+        <button type="submit">Zarejestruj się</button>
     </form>
-    <button onclick={() => window.location.href = '/register'}>Zarejestruj się</button>
+    <button onclick={() => window.location.href = '/login'}>Zaloguj się</button>
 </div>
