@@ -1,7 +1,7 @@
 <script>
-    import Microphone from '../assets/Microphone.png';
-    import Messages from '../assets/Messages.png';
-    import Paint from '../assets/Paint.png';
+    import Microphone from './assets/Microphone.png';
+    import Messages from './assets/Messages.png';
+    import Paint from './assets/Paint.png';
 
     class functionItem {
         constructor(title, description, icon, background) {

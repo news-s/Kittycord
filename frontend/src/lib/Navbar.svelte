@@ -1,6 +1,6 @@
 
 <script>
-    import Logo from '../assets/Logo.png';
+    import Logo from './assets/Logo.png';
 </script>
 
 <div class="wrapper">

@@ -1,8 +1,8 @@
 <script>
-    import Arrow from '../assets/ArrowRight.png';
-    import People from '../assets/People.png';
-    import Star from '../assets/Star.png';
-    import Cats from '../assets/Cats.png';
+    import Arrow from './assets/ArrowRight.png';
+    import People from './assets/People.png';
+    import Star from './assets/Star.png';
+    import Cats from './assets/Cats.png';
 </script>
 
 <div id="welcome">
