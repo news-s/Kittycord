@@ -34,138 +34,22 @@
     ];
 </script>
 
-<div id="functions">
-    <div class="wrapper">
-        <div class="text-wrapper">
-            <div class="title">Funkcje Kittycord</div>
-            <div class="subtitle">Wszystko czego potrzebujesz do doskonałej komunikacji w jednym <br> miejscu</div>
+<div class="w-full h-[703px] flex justify-center bg-white">
+    <div class="max-w-[1232px] w-full h-full px-[55px] flex flex-col items-center">
+        <div class="w-fit h-fit mt-[94px] flex flex-col items-center">
+            <div class="font-bold text-5xl leading-[48px] text-purple-600">Funkcje Kittycord</div>
+            <div class="mt-[15px] font-normal text-xl leading-7 text-center text-gray-600">Wszystko czego potrzebujesz do doskonałej komunikacji w jednym <br> miejscu</div>
         </div>
-        <div class="functions-wrapper">
+        <div class="w-full h-fit mt-[87px] flex flex-row justify-between gap-10">
             {#each functions as func}
-                <div class="function-item">
-                    <div class="icon" style="background: {func.background};">
+                <div class="w-[325px] h-[300px] p-8 shadow-lg border border-purple-100 rounded-3xl flex flex-col">
+                    <div class="w-16 aspect-square rounded-2xl flex justify-center items-center" style="background: {func.background};">
                         <img src={func.icon} alt={func.title} />
                     </div>
-                    <div class="title">{func.title}</div>
-                    <div class="description">{func.description}</div>
+                    <div class="mt-6 font-bold text-2xl text-gray-800">{func.title}</div>
+                    <div class="mt-[15px] font-normal text-base text-gray-600">{func.description}</div>
                 </div>
             {/each}
         </div>
     </div>
 </div>
-
-<style>
-    *{
-        text-decoration: none;
-        font-family: 'Inter';
-    }
-
-    #functions {
-        width: 100%;
-        height: 703px;
-
-        display: flex;
-        justify-content: center;
-
-        background-color: #FFFFFF;
-    }
-
-    #functions > .wrapper {
-        max-width: 1232px;
-        width: 100%;
-        height: 100%;
-
-        padding-left: 104px;
-        padding-right: 104px;
-
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .text-wrapper {
-        width: fit-content;
-        height: fit-content;
-
-        margin-top: 94px;
-
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .text-wrapper > .title {
-        font-weight: 700;
-        font-size: 48px;
-        line-height: 48px;
-
-        color: #9333EA;
-    }
-
-    .text-wrapper > .subtitle {
-        margin-top: 15px;
-
-        font-weight: 400;
-        font-size: 20px;
-        line-height: 28px;
-
-        text-align: center;
-
-        color: #4B5563;
-    }
-
-    .functions-wrapper {
-        width: 100%;
-        height: fit-content;
-
-        margin-top: 67px;
-
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-    }
-
-    .function-item {
-        width: 325px;
-        height: 216px;
-
-        padding: 32px;
-
-        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
-        border: 1px solid #F3E8FF;
-        border-radius: 24px;
-
-        display: flex;
-        flex-direction: column;
-    }
-
-    .function-item > .icon {
-        width: 64px;
-        aspect-ratio: 1/1;
-
-        border-radius: 16px;
-
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .function-item > .title {
-        margin-top: 24px;
-
-        font-weight: 700;
-        font-size: 24px;
-
-        color: #1F2937;
-    }
-
-    .function-item > .description {
-        margin-top: 15px;
-
-        font-weight: 400;
-        font-size: 16px;
-
-        color: #4B5563;
-    }
-    
-</style>
