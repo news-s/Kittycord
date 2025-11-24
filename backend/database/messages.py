@@ -15,6 +15,11 @@ def store_channel_message(author_id, channel_id, content, attachment_id):
 def get_last_messsages_from_channel(count, channel_id):
     db_gen = models.get_db()
     db = next(db_gen)
+    #Check if channel exists
+    channel = db.query(models.Channel).filter_by(id=channel_id).first()
+    if channel == None:
+        return {'status': "error", 'message': "channel doesnt exists"}
+    # TODO: start_count stop_count
     messages = db.query(models.Message).filter_by(channel_id=channel_id).order_by(asc(models.Message.date)).limit(count).all()
     return {'status': "success", "messages":
             [{
@@ -24,6 +29,14 @@ def get_last_messsages_from_channel(count, channel_id):
                 'attachment_id': m.attachment_id
             } for m in messages]
         }
+
+def get_author(id_message):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    message = db.query(models.Message).filter_by(id=id_message).first()
+    if message == None:
+        return {'status': "error",  'message': "message doesnt exist"}
+    return {'status': "success", 'author_id': message.user_id}
 
 def delete_message(id):
     db_gen = models.get_db()
