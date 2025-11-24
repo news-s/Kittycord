@@ -1,5 +1,6 @@
-import models
 from sqlalchemy import insert, delete
+
+from database import models
 
 def join_server(user_id: int, server_id: int):
     db_gen = models.get_db()

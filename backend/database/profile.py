@@ -1,4 +1,4 @@
-import models
+from database import models
 
 def get_user_data(user_id: int):
     db_gen = models.get_db()
