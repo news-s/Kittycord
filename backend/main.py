@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from routes import login, profile, channel, ws
+from routes import login, profile, channel, server, message, ws
 
 app = FastAPI()
 
@@ -18,6 +18,8 @@ app.add_middleware(
 app.include_router(login.router)
 app.include_router(profile.router)
 app.include_router(channel.router)
+app.include_router(server.router)
+app.include_router(message.router)
 app.include_router(ws.router)
 
 

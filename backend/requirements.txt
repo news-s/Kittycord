@@ -2,7 +2,7 @@ fastapi
 uvicorn
 websockets
 python-jose[cryptography]
-psycopg2
+psycopg2-binary
 SQLAlchemy
 python-dotenv
 bcrypt

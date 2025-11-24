@@ -1,9 +1,8 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
-from users import servers, users, Message
-import typing
 import json
 
 from auth_token import verify_token
+from database.messages import store_channel_message, get_last_messsages_from_channel
 
 class Socket:
     websocket: WebSocket
@@ -18,84 +17,56 @@ class Socket:
     async def send(self, message: str):
         _ = await self.websocket.send_json(message)
 
-    async def handle_message(self, msg):
+    async def handle_message(self, msg: dict[str, str]):
         if len(msg["content"]) > 1000:
-            res = {
+            response = {
                 "status": 400,
                 "message": "Message content is too long"
             }
-            await self.websocket.send_json(json.dumps(res))
+            await self.websocket.send_json(json.dumps(response))
             return
+        
+
+        id = store_channel_message(self.user_id, self.current_channel, msg["content"], None)
+
+        message = {
+            "author_id": self.user_id,
+            "channel_id": self.current_channel,
+            "content": msg["content"],
+            "id": id # TODO return actual message id
+        }
+        await broadcast.broadcast(json.dumps(message))
 
 
+        response = {
+            "status": 201,
+            "id": id # TODO return actual message id
+        }
+        await self.websocket.send_json(json.dumps(response))
 
-        # TODO database integration
-        for server in servers:
-            for channel in server.channels:
-                if channel.id == self.current_channel:
-                    channel.messages.append(Message(1, self.user_id, msg["content"]))
+    async def handle_channel(self, msg: dict[str, str]):
+        res = get_last_messsages_from_channel(50, msg["content"])
 
-                    message = {
-                        "author_id": self.user_id,
-                        "channel_id": self.current_channel,
-                        "content": msg["content"],
-                        "id": 0 # TODO return actual message id
-                    }
-                    await broadcast.broadcast(message)
-
-                    res = {
-                        "status": 200,
-                        "id": 0 # TODO return actual message id
-                    }
-                    await self.websocket.send_json(json.dumps(res))
-
-    async def handle_channel(self, msg):
-        # TODO database integration
-
-        found = False
-
-        for server in servers:
-            for channel in server.channels:
-                if channel.id == int(msg["content"]):
-                    res = {
-                        "status": 200,
-                        "messages": channel.messages
-                    }
-                    await self.websocket.send_json(json.dumps(res, default=lambda o: o.__dict__))
-
-                    self.current_channel = int(msg["content"])
-                    found = True
-                    break
-
-        if not found:
-            res = {
+        if res["status"] == "error":
+            response = {
                 "status": 404,
                 "message": "Channel not found"
             }
-            await self.websocket.send_json(json.dumps(res))
+            await self.websocket.send_json(json.dumps(response))
+            return
+        
+        response = {
+            "status": 200,
+            "messages": res["messages"]
+        }
+        await self.websocket.send_json(json.dumps(response, default=lambda o: o.__dict__))
 
-    async def handle_server(self, msg):
-        # TODO database intergration
-
-        found = True
-
-        for server in servers:
-            if server.id == msg["content"]:
-                self.current_channel = server.channels[0].id
-
-                res = {
-                    "status": 200,
-                    "channels": [channel.name for channel in server.channels],
-                    "messages": server.channels[0].messages,
-                }
-                await self.websocket.send_json(json.dumps(res, default=lambda o: o.__dict__))
-
-        if not found:
-            res = {
-                "status": 404,
-                "message": "Server not found"
-            }
-            await self.websocket.send_json(json.dumps(res))
+    async def handle_server(self, msg: dict[str, str]):
+        response = {
+            "status": 501,
+            "message": "Server change not yet implemented"
+        }
+        await self.websocket.send_json(json.dumps(response))
 
 class Broadcaster:
     connections: list[Socket]
@@ -136,9 +107,9 @@ async def ws(websocket: WebSocket):
     try:
         while True:
             raw = await websocket.receive_text()
-            msg: dict[str, typing.Any] = json.loads(raw)
+            msg: dict[str, str] = json.loads(raw)
 
-            if msg["type"] == None:
+            if msg["type"] == "":
                 res = {
                     "status": 400,
                     "message": "Message type missing"

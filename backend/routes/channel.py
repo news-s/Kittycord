@@ -1,43 +1,44 @@
-import typing
 from fastapi import APIRouter, HTTPException
-from users import servers
+from pydantic import BaseModel
+
+from database.servers import get_owner_id
+from database.channels import create_channel
 
 from auth_token import verify_token
 
 router = APIRouter()
 
-@router.post("/create_channel")
-async def create_channel(token: str, id_server: int, channel_name: str):
-    user_id = verify_token(token)
+class AddChannel(BaseModel):
+    token: str
+    server_id: int
+    channel_name: str
 
-    # TODO database integration
-    server = None
-    for s in servers:
-        if s.id == id_server:
-            server = s
-            break
+@router.post("/add_channel", status_code=201)
+async def add_channel(data: AddChannel) -> str:
+    user_id = verify_token(data.token)
+    
+    owner_id = get_owner_id(data.server_id)["owner_id"]
 
-    if server is None:
-        raise HTTPException(status_code=404, detail="Server not found")
-
-    if server.id_owner != user_id:
+    if owner_id != user_id:
         raise HTTPException(status_code=403, detail="User is not the owner")
 
-    server.add_channel(channel_name)
+    res = create_channel(data.server_id, data.channel_name)
+
+    return res["status"]
 
 
-@router.post("/remove_channel")
-async def remove_channel(token: str, id: int):
+
+class RemoveChannel(BaseModel):
+    token: str
+    channel_id: int
+
+@router.post("/remove_channel", status_code=202)
+async def remove_channel(data: RemoveChannel) -> str:
+    # TODO implement with database
+    raise HTTPException(status=501)
+
+
     user_id = verify_token(token)
 
-    # TODO database integration
-    for server in servers:
-        for channel in server.channels:
-            if channel.id != id: continue
-            if server.id_owner != user_id:
-                raise HTTPException(status_code=403, detail="User is not the owner")
-
-            server.channels.remove(channel)
-            return
             
     raise HTTPException(status_code=404, detail="Channel not found")

@@ -1,14 +1,20 @@
-import models, bcrypt
+import bcrypt
 from datetime import datetime
 
-def verify_user(name: str, password: str):
+from database import models
+
+def verify_user(name: str, password: str) -> bool | None:
     db_gen = models.get_db()
     db = next(db_gen)
     try:
         usr = db.query(models.User).filter_by(name=name).first()
         if usr is None:
             return None
-        return bcrypt.checkpw(password.encode('utf-8'), usr.password)
+        
+        if bcrypt.checkpw(password.encode('utf-8'), usr.password):
+            return usr.id
+
+        return 0
     finally:
         db_gen.close()
 

@@ -1,10 +1,12 @@
-import models, datetime, login
+import datetime
 from sqlalchemy import asc
 
-async def store_channel_message(author_id, channel_id, content, attachment_id):
+from database import models
+
+def store_channel_message(author_id, channel_id, content, attachment_id):
     db_gen = models.get_db()
     db = next(db_gen)
-    message = models.Message(user_id=author_id, channel_id=channel_id, date=datetime.now(), text=content, attachment_id=attachment_id)
+    message = models.Message(user_id=author_id, channel_id=channel_id, date=datetime.datetime.now(), text=content, attachment_id=attachment_id)
     db.add(message)
     db.commit()
     db.refresh(message)
@@ -32,7 +34,4 @@ def delete_message(id):
     message.delete()
     db.commit()
     return {'status': "success"}
-
-if __name__ == "__main__":
-    login.create_user("test", "test")
     

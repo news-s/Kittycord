@@ -1,5 +1,6 @@
-import models
 from sqlalchemy import insert, delete
+
+from database import models
 
 def join_server(user_id: int, server_id: int):
     db_gen = models.get_db()
@@ -20,10 +21,6 @@ def create_server(owner_id: int, name: str, invite_link: str):
         return {"status": "error", "message": str(e)}
     # getting server id
     server_id = db.query(models.Server).filter_by(invite_link=invite_link).first().id
-    # adding relation
-    rel = models.User_Server(user_id=owner_id, server_id=server_id, permission=[], role=[])
-    db.add(rel)
-    db.commit()
     # Join owner to server
     join_server(owner_id, server_id)
     return {"status": "success", "server_id": server_id}

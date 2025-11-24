@@ -1,6 +1,6 @@
-import models
+from database import models
 
-def create_channel(server_id, name, role_needed):
+def create_channel(server_id, name, role_needed = None):
     db_gen = models.get_db()
     db = next(db_gen)
     if role_needed == None:
