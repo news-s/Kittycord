@@ -5,7 +5,7 @@
 
 <div class="wrapper">
     <nav class="navbar">
-        <a class="button" href="#welcome">
+        <a class="button" href="/">
             <img src={Logo} alt="KittyCord Logo" class="logo" />
             Kittycord
         </a>

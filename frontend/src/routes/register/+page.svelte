@@ -1,15 +1,21 @@
 <script>
+    import bcrypt from 'bcryptjs';
+
     let username = $state("");
     let password = $state("");
     let repassword = $state("");
 
     async function register() {
-        const res = await fetch('http://localhost:8000/register', {
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(password, salt);
+        console.log(hash)
+
+        const res = await fetch('http://localhost:8000/add_user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                username: username,
-                password: password
+                name: username,
+                hashed_password: password
             })
         });
 
@@ -24,11 +30,10 @@
         return;
       }
         
-
       await register();
       console.log('Zarejestrowano pomyślnie');
 
-       window.location.href = '/thanks';
+    //    window.location.href = '/thanks';
     } 
 </script>
 
@@ -42,7 +47,7 @@
         <input type="password" id="password" name="password" bind:value={password} required /> <br>
     
         <label for="repassword">Powtórz hasło:</label> <br>
-        <input type="repassword" id="repassword" name="repassword" bind:value={repassword} required /> <br>
+        <input type="password" id="repassword" name="repassword" bind:value={repassword} required /> <br>
     
         <button type="submit">Zarejestruj się</button>
     </form>

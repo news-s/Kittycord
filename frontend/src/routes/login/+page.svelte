@@ -1,14 +1,19 @@
 <script>
+    import bcrypt from 'bcryptjs';
+
     let username = $state("");
     let password = $state("");
 
     async function login() {
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(password, salt);
+
         const res = await fetch('http://localhost:8000/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 username: username,
-                password: password
+                hashed_password: password
             })
         });
 
@@ -16,11 +21,14 @@
     }
 
     async function onsubmit(event) {
-      event.preventDefault();
-      let data = await login();
-      
-      console.log('Zalogowano pomyślnie');
-      console.log(data.access_token);
+        event.preventDefault();
+        let data = await login();
+        
+        console.log('Zalogowano pomyślnie');
+        console.log(data.token);
+        localStorage.setItem('token', data.token);
+
+        window.location.href = '/main';
     } 
 </script>
 
