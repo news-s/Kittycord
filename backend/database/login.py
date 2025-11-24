@@ -22,7 +22,7 @@ def create_user(name: str, password: str):
             return {'status': "error", 'error': "name already taken"}
 
         hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        user = models.User(name=name, password=hashed, account_creation_date=datetime.now())
+        user = models.User(name=name, display_name=name, password=hashed, account_creation_date=datetime.now())
         db.add(user)
         db.commit()
         return {'status': "ok"}

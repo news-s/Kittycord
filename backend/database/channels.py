@@ -23,3 +23,47 @@ def delete_channel(channel_id):
     db.query(models.Channel).filter_by(id=channel_id).first().delete()
     db.commit()
     return {'status': "success"}
+
+def get_server_id(channel_id):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    server_id = db.query(models.Channel).filter_by(id=channel_id).first().server_id
+    if server_id == None:
+        return {'status': "error", 'message': "channel doesnt exists"}
+    return {'status': "success", 'server_id': server_id}
+
+def get_channels(server_id):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    channels = db.query(models.Channel).filter_by(server_id=server_id).all()
+    return {'status': "success", 'channels':
+            [{
+                'id': c.id,
+                'name': c.name,
+                'role_needed': c.role_needed
+            } for c in channels]
+        }
+
+def change_channel_name(channel_id, new_name):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    channel = db.query(models.Channel).filter_by(id=channel_id).first()
+    if channel == None:
+        return {'status': "error", 'message': "channel doesnt exists"}
+    channel.name = new_name
+    db.commit()
+    return {'status': "success"}
+
+def change_channel_role_needed(channel_id, new_role_needed):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    channel = db.query(models.Channel).filter_by(id=channel_id).first()
+    if channel == None:
+        return {'status': "error", 'message': "channel doesnt exists"}
+    server_id = channel.server_id
+    roles = db.query(models.Server).filter_by(id=server_id).first().roles
+    if new_role_needed not in roles:
+        return {'status': "error", 'message': "role_needed doesnt exists"}
+    channel.role_needed = new_role_needed
+    db.commit()
+    return {'status': "success"}
