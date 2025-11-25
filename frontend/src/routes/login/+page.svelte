@@ -1,7 +1,7 @@
 <script>
     import bcrypt from 'bcryptjs';
 
-    let email = $state("");
+    let username = $state("");
     let password = $state("");
     let rememberMe = $state(false);
 
@@ -13,7 +13,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                username: email,
+                username: username,
                 hashed_password: password
             })
         });
@@ -48,14 +48,14 @@
             <form {onsubmit} class="space-y-5">
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                        Email
+                        Username
                     </label>
                     <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        bind:value={email} 
-                        placeholder="example@mail.com"
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        bind:value={username} 
+                        placeholder="Username"
                         class="w-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
                         style="border-radius: 16px; border: 1px solid #E5E7EB; background: rgba(255, 255, 255, 0.70);"
                         required 

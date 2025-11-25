@@ -2,14 +2,13 @@
     import { onDestroy, onMount } from "svelte";
     import { socket } from "../stores.js";
     import { page } from "$app/stores";
+	import Chat from "$lib/Chat.svelte";
     // import { derived } from 'svelte/runes';
 
     let channels = $state([]);
     let messages = $state([]);
     let open = $state(false);
     let server_id = null;
-
-    console.log(page)
 
     const page_unsubscribe = page.subscribe(p => {
         server_id = p.url.search.split('=')[1];
@@ -25,7 +24,8 @@
     function message(event){
         const message = JSON.parse(JSON.parse(event.data));
         
-        channels = message.channels;
+        if(message.channels) channels = message.channels;
+        if(message.messages) messages = message.messages;
     }
 
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -38,6 +38,7 @@
         let tries = 0;
         while(!connected) {
             if($socket?.readyState === WebSocket.OPEN)break;
+            tries += 1;
             if(tries > 3) window.location.pathname = "/login"
             console.warn("Not connected to the web socket. Retrying in 1 second...");
 
@@ -86,16 +87,25 @@
     }
 
     async function SwitchChannel(channel_id) {
-        
+        if($socket?.readyState !== WebSocket.OPEN || channel_id === null || channel_id === undefined)return;
+
+        $socket.send(JSON.stringify({
+            type: "channel",
+            content: channel_id
+        }));
     }
 </script>
 
-<div class="channels-container">
-    {#each channels as channel}
-        <div class="channel"></div>
-    {/each}
-
-    <button class="create-channel" onclick={() => open = !open}>Create Channel</button>
+<div class="server-container">
+    <div class="channels-container">
+        {#each channels as channel}
+            <button class="channel" onclick={() => SwitchChannel(channel[0])}>{channel[1]}</button>
+        {/each}
+    
+        <button class="create-channel" onclick={() => open = !open}>Create Channel</button>
+    </div>
+    
+    <Chat bind:messages={messages}></Chat>
 </div>
 
 {#if open}
@@ -122,6 +132,10 @@
 {/if}
 
 <style>
+    .server-container {
+        display: flex;
+    }
+
     .channels-container {
         width: 200px;
         height: 100svh;
