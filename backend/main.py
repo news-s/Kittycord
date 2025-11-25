@@ -1,8 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+import os, dotenv
+from database import models
 
 from routes import login, profile, channel, server, message, ws
+
+dotenv.load_dotenv()
+models.init_db(
+    f'postgresql+psycopg2://{os.getenv("DB_USER")}:{os.getenv("DB_PASSWORD")}@{os.getenv("DB_HOST")}/{os.getenv("DB_NAME")}'
+)
+
 
 app = FastAPI()
 

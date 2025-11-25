@@ -44,9 +44,9 @@ async def add_server(data: AddServer) -> AddServerResponse:
 
 class RemoveServer(BaseModel):
     token: str
-    server_id: str
+    server_id: int
 
-@router.delete("/remove_server", status_code=202)
+@router.patch("/remove_server", status_code=200)
 async def remove_server(data: RemoveServer) -> str:
     user_id = verify_token(data.token)
 
@@ -68,7 +68,7 @@ class EditServer(BaseModel):
     server_id: int
     new_val: str
 
-@router.put("/edit_server/name")
+@router.put("/edit_server/name", status_code=200)
 async def edit_server_name(data: EditServer):
     user_id = verify_token(data.token)
 
@@ -87,7 +87,7 @@ async def edit_server_name(data: EditServer):
     
     return res["status"]
 
-@router.put("/edit_server/link")
+@router.put("/edit_server/link", status_code=200)
 async def edit_server_link(data: EditServer):
     user_id = verify_token(data.token)
 

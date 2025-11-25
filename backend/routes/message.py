@@ -11,7 +11,7 @@ class RemoveMessage(BaseModel):
     message_id: int
 
 
-@router.delete("/remove_message", status_code=202)
+@router.patch("/remove_message", status_code=200)
 async def remove_message(data: RemoveMessage) -> str:
     user_id = verify_token(data.token)
     res = get_author(data.message_id)

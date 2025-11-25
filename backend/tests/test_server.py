@@ -1,0 +1,44 @@
+from database.login import create_user, verify_user
+from database.servers import create_server
+from auth_token import create_access_token
+
+def test_add_server(client, db):
+    create_user("name", "pass")
+    user_id = verify_user("name", "pass")
+    token = create_access_token({"id": user_id})
+
+    res = client.post("/add_server", json={
+        "token": token,
+        "server_name": "name",
+        "invite_link": "link",
+    })
+
+    assert res.status_code == 201
+
+def test_remove_server(client, db):
+    create_user("name", "pass")
+    user_id = verify_user("name", "pass")
+    server_id = create_server(user_id, "name", "link")["server_id"]
+    token = create_access_token({"id": user_id})
+
+    res = client.patch("/remove_server", json={
+        "token": token,
+        "server_id": server_id,
+    })
+
+    assert res.status_code == 200
+
+
+def test_edit_server_name(client, db):
+    create_user("name", "pass")
+    user_id = verify_user("name", "pass")
+    server_id = create_server(user_id, "name", "link")["server_id"]
+    token = create_access_token({"id": user_id})
+
+    res = client.put("/edit_server/name", json={
+        "token": token,
+        "server_id": server_id,
+        "new_val": "name2",
+    })
+
+    assert res.status_code == 200

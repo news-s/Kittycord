@@ -1,4 +1,5 @@
 from database import models
+from sqlalchemy import update
 
 def get_user_data(user_id: int):
     db_gen = models.get_db()
@@ -21,7 +22,7 @@ def get_user_data(user_id: int):
 def change_display_name(user_id: int, new_name: str):
     db_gen = models.get_db()
     db = next(db_gen)
-    db.query(models.User).filter_by(id=user_id).first().update(display_name=new_name)
+    update(models.User).where(models.User.id==user_id).values(display_name=new_name)
     db.commit()
     return {'status': "success"}
 
@@ -31,14 +32,14 @@ def change_name(user_id: int, new_name: str):
     is_free = db.query(models.User).filter_by(name=new_name).first()
     if is_free != None:
         return {'status': "error", 'message': "name already taken"}
-    db.query(models.User).filter_by(id=user_id).first().update(name=new_name)
+    update(models.User).where(models.User.id==user_id).values(name=new_name)
     db.commit()
     return {'status': "success"}
 
 def change_note(user_id: int, new_note: str):
     db_gen = models.get_db()
     db = next(db_gen)
-    db.query(models.User).filter_by(id=user_id).first().update(note=new_note)
+    update(models.User).where(models.User.id==user_id).values(note=new_note)
     db.commit()
     return {'status': "success"}
 

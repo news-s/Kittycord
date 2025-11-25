@@ -32,7 +32,7 @@ class RemoveChannel(BaseModel):
     token: str
     channel_id: int
 
-@router.delete("/remove_channel", status_code=202)
+@router.patch("/remove_channel", status_code=200)
 async def remove_channel(data: RemoveChannel) -> str:
     user_id = verify_token(data.token)
     res = get_server_id(data.channel_id)
@@ -58,7 +58,7 @@ class EditChannel(BaseModel):
     channel_id: int
     channel_name: str
 
-@router.put("/edit_channel", status_code=200)
+@router.put("/edit_channel/name", status_code=200)
 async def edit_channel(data: EditChannel) -> str:
     user_id = verify_token(data.token)
     res = get_server_id(data.channel_id)
