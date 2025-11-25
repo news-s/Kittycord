@@ -19,11 +19,9 @@
                 twórz społeczności i baw się dobrze w przestrzeni <br>
                 stworzonej z myślą o Tobie. <br>
             </div>
-            <a href="/login">
-                <div class="h-[68px] w-[258px] mt-[31px] flex justify-center items-center gap-2 text-lg leading-7 font-bold rounded-2xl text-white bg-gradient-to-r from-purple-600 to-pink-600">
-                    Otwórz Kittycord
-                    <img src={Arrow} alt="Arrow Right"/>
-                </div> 
+            <a href="/login" class="h-[68px] w-[258px] mt-[31px] flex justify-center items-center gap-2 text-lg leading-7 font-bold rounded-2xl text-white bg-gradient-to-r from-purple-600 to-pink-600 no-underline cursor-pointer">
+                Otwórz Kittycord
+                <img src={Arrow} alt="Arrow Right"/>
             </a> 
             <div class="mt-[47px] flex items-center gap-2 text-sm leading-5 font-normal text-gray-600">
                 <img src={People} alt="People"/>
