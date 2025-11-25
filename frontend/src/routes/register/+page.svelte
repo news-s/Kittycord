@@ -23,17 +23,17 @@
     }
 
     async function onsubmit(event) {
-      event.preventDefault();
+        event.preventDefault();
 
-      if(password !== repassword) {
+        if(password !== repassword) {
         console.warn("Hasła nie są identyczne");
         return;
-      }
+        }
         
-      await register();
-      console.log('Zarejestrowano pomyślnie');
+        await register();
+        console.log('Zarejestrowano pomyślnie');
 
-    //    window.location.href = '/thanks';
+        window.location.href = '/thanks';
     } 
 </script>
 

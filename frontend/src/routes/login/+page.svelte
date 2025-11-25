@@ -28,7 +28,7 @@
         console.log(data.token);
         localStorage.setItem('token', data.token);
 
-        window.location.href = '/main';
+        window.location.href = '/app/main';
     } 
 </script>
 
