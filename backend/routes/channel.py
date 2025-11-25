@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from database.servers import get_owner_id
-from database.channels import create_channel
+from database.channels import create_channel, get_server_id, delete_channel, change_channel_name
 
 from auth_token import verify_token
 
@@ -32,13 +32,48 @@ class RemoveChannel(BaseModel):
     token: str
     channel_id: int
 
-@router.post("/remove_channel", status_code=202)
+@router.delete("/remove_channel", status_code=202)
 async def remove_channel(data: RemoveChannel) -> str:
-    # TODO implement with database
-    raise HTTPException(status=501)
+    user_id = verify_token(data.token)
+    res = get_server_id(data.channel_id)
+
+    if res["status"] == "error":
+        return HTTPException(status_code=404, detail="Channel not found")
+    
+    res = get_owner_id(res["server_id"])
+
+    if res["status"] == "error":
+        return HTTPException(status_code=500, detail="Owner ID is None")
+    
+    if res["owner_id"] != user_id:
+        return HTTPException(status_code=403, detail="User is not owner")
+    
+    res = delete_channel(data.channel_id)
+
+    return res["status"]
 
 
-    user_id = verify_token(token)
+class EditChannel(BaseModel):
+    token: str
+    channel_id: int
+    channel_name: str
 
-            
-    raise HTTPException(status_code=404, detail="Channel not found")
+@router.put("/edit_channel", status_code=200)
+async def edit_channel(data: EditChannel) -> str:
+    user_id = verify_token(data.token)
+    res = get_server_id(data.channel_id)
+
+    if res["status"] == "error":
+        return HTTPException(status_code=404, detail="Channel not found")
+    
+    res = get_owner_id(res["server_id"])
+
+    if res["status"] == "error":
+        return HTTPException(status_code=500, detail="Owner ID is None")
+    
+    if res["owner_id"] != user_id:
+        return HTTPException(status_code=403, detail="User is not owner")
+    
+    res = change_channel_name(data.channel_id, data.channel_name)
+
+    return res["status"]

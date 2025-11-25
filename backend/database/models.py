@@ -66,6 +66,7 @@ class Friend_requests(Base):
     user_id_2 = Column(Integer, ForeignKey("Users.id"))
 
 class Roles(Base):
+    __tablename__ = "Roles"
     id = Column(Integer, primary_key=True)
     server_id = Column(Integer, ForeignKey("Servers.id"), nullable=False)
     role_name = Column(String, nullable=False)

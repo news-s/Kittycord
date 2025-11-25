@@ -13,6 +13,7 @@ class Login(BaseModel):
 
 class LoginResponse(BaseModel):
     token: str
+    user_id: int
 
 
 @router.post("/login", status_code=200)
@@ -22,7 +23,7 @@ async def login(data: Login) -> LoginResponse:
         raise HTTPException(status_code=401, detail="Bad credentials")
 
     token = create_access_token({"id": user})
-    return LoginResponse(token=token)
+    return LoginResponse(token=token, user_id=user)
 
 
 class AddUser(BaseModel):
@@ -45,7 +46,7 @@ class RemoveUser(BaseModel):
     username: str
     hashed_password: str
 
-@router.post("/remove_user", status_code=202)
+@router.delete("/remove_user", status_code=202)
 async def remove_user(data: RemoveUser) -> str:
     user_id = verify_token(data.token)
 

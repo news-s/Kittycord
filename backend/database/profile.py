@@ -9,12 +9,13 @@ def get_user_data(user_id: int):
     servers = db.query(models.User_Server.server_id).filter_by(user_id=user_id).all()
     #TODO ma zwracać też zanjomych
     return {
+        "status": "success",
         "name": usr.name,
         "display_name": usr.display_name,
         "note": usr.note,
         "badges": usr.badges,
         "creation_date": usr.account_creation_date,
-        "servers": [server for server in servers],
+        "servers": [server[0] for server in servers],
     }
 
 def change_display_name(user_id: int, new_name: str):

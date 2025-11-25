@@ -48,3 +48,12 @@ def delete_message(id):
     db.commit()
     return {'status': "success"}
     
+def change_message(id, new_content):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    message = db.query(models.Message).filter_by(id=id).first()
+    if message == None:
+        return {'status': "error",  'message': "message doesnt exist"}
+    message.text = new_content
+    db.commit()
+    return {'status': "success"}
