@@ -12,6 +12,9 @@ def join_server(user_id: int, server_id: int):
     rel_check = db.query(models.User_Server).filter_by(user_id=user_id, server_id=server_id).first()
     if rel_check != None:
         return {'status': "error", 'message': "user already in server"}
+    banned = db.query(models.Ban).filter_by(user_id=user_id, server_id=server_id).first()
+    if banned != None:
+        return {'status': "error", 'message': "user is banned from server"}
     rel = models.User_Server(user_id=user_id, server_id=server_id, roles=[])
     db.add(rel)
     db.commit()
@@ -99,6 +102,19 @@ def get_users_in_server(server_id: int):
     return {'status': "success", 'users':
             [{
                 'user_id': rel.user_id,
+                'roles': rel.roles
+            } for rel in rels]
+        }
+
+def get_servers_of_user(user_id: int):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    rels = db.query(models.User_Server).filter_by(user_id=user_id).all()
+    if rels == None:
+        return {'status': "error", 'message': "user doesnt exists"}
+    return {'status': "success", 'servers':
+            [{
+                'server_id': rel.server_id,
                 'roles': rel.roles
             } for rel in rels]
         }
