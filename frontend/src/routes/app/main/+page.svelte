@@ -1,4 +1,7 @@
 <script>
+  import { dmUser, dmMessages } from "../dm/store.js";
+  import { goto } from "$app/navigation";
+
 	class Channel {
     constructor(id, name) {
       this.id = id;
@@ -11,7 +14,14 @@
     new Channel(3, "Music"), 
   ];
 
-	let f = ['franek', 'franciszek', 'franuszek', 'franula', 'franio'];
+	let f = [
+    { id: 1, name: 'franek'},
+    { id: 2, name: 'franciszek'}, 
+    { id: 3, name: 'franuszek'}, 
+    { id: 4, name: 'franula'}, 
+    { id: 5, name: 'franio'}
+  ];
+
 	let status = ['offline', 'offline', 'online', 'online', 'online']
   let search = "";
   let limit = 3
@@ -43,6 +53,12 @@
 	function friendsOnline(){
 		showFriends = "online";
 	}
+
+  function openDM(friend) {
+    dmUser.set(friend);
+    dmMessages.set([]); 
+    goto("/app/dm");
+  }
 
 	
 </script>
@@ -100,18 +116,24 @@
     <button class="close" on:click={() => findFriendMenu = false}>×</button>
     <input type="text" placeholder="Szukaj..." bind:value={search} /><br>
 
-		{#each f
-    .filter(name => name.toLowerCase().includes(search.toLowerCase()))
-    .slice(0, limit) as name}
-    {name}<br>
-  {/each}
+    {#each f
+      .filter(friend => friend.name.toLowerCase().includes(search.toLowerCase()))
+      .slice(0, limit) as friend}
 
+      <button on:click={() => openDM(friend)}>
+        {friend.name}
+      </button><br>
+
+    {/each}
   </div>
 {/if}
 
+
+
+
 <h2>img Znajomi</h2>
 {#each f as friend, index}
-	<button class="listFriend">img prof {index+1} + status + {friend}</button><br>
+	<button class="listFriend" on:click={() => openDM(friend)}>img prof {index+1} + status + {friend.name}</button><br>
 {/each}
 
 
@@ -120,10 +142,10 @@
 <h6>{showFriends} – {#if showFriends=="online"}{online}{/if}{#if showFriends=="wszystkie"}{total}{/if}</h6>
 {#each f as friend, index}
 	{#if status[index] == 'online'}
-		<button class="listFriend">img prof {index+1} + status + {friend}</button><br>
+		<button class="listFriend" on:click={() => openDM(friend)}>img prof {index+1} + status + {friend.name}</button><br>
 	{/if}
 	{#if status[index] == 'offline' && showFriends == "wszystkie"}
-		<button class="listFriend">img prof {index+1} + status + {friend}</button><br>
+		<button class="listFriend" on:click={() => openDM(friend)}>img prof {index+1} + status + {friend.name}</button><br>
 	{/if}
 {/each}
 
