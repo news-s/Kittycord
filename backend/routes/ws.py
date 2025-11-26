@@ -17,7 +17,7 @@ class Socket:
         self.current_channel = current_channel
 
     async def send(self, message):
-        if message["channel_id"] == self.current_channel and message["author_id"] != self.user_id:
+        if message["channel_id"] == self.current_channel:
             _ = await self.websocket.send_json(json.dumps(message))
 
     async def handle_error(self, status_code: int, detail: str):
@@ -38,7 +38,7 @@ class Socket:
             return
         
 
-        id = store_channel_message(self.user_id, self.current_channel, msg["content"], None)
+        id = store_channel_message(self.user_id, self.current_channel, msg["content"], None)["message_id"]
 
         message = {
             "author_id": self.user_id,
