@@ -114,6 +114,14 @@ def get_roles_in_server(server_id: int):
             } for r in roles]
         }
 
+def get_user_roles_in_server(user_id: int, server_id: int):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    rel = db.query(models.User_Server).filter_by(user_id=user_id, server_id=server_id).first()
+    if rel == None:
+        return {'status': "error", 'message': "User is not in server"}
+    return {'status': "success", 'roles': rel.roles}
+
 def change_role_name(role_id: int, new_name: str):
     db_gen = models.get_db()
     db = next(db_gen)
@@ -125,7 +133,7 @@ def change_role_name(role_id: int, new_name: str):
     return {'status': "success"}
 
 if __name__ == "__main__":
-    server_id = 2
+    server_id = 1
     print(create_role(server_id, "Moderator", {
         "Mute members": True,
         "Kick members": True,
@@ -148,6 +156,8 @@ if __name__ == "__main__":
     reorder_roles(server_id, [2, 1])
     print(get_roles_in_server(server_id))
     add_role_to_user(1, server_id, 1)
+    get_user_roles_in_server(1, server_id)
+    print(get_user_roles_in_server(1, server_id))
     print(permissions.get_user_permissions(1, server_id))
     change_role_color(1, "#0000FF")
     change_role_name(1, "Super Moderator")

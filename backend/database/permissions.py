@@ -6,7 +6,7 @@ permissions = ["Mute members", "Kick members", "Ban members", "Manage channels",
 def convert_to_permissions(n: int):
     result = {}
     for i, permission in enumerate(permissions):
-        result[permission] = (n & (1 << i)) != 0
+        result[permission] = bool(n & (1 << i))
     return result
 
 def convert_to_string(perms: dict):

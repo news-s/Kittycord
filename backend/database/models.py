@@ -20,6 +20,7 @@ class User_Server(Base):
   user_id = Column(Integer, ForeignKey("Users.id"))
   server_id = Column(Integer, ForeignKey("Servers.id"))
   roles = Column(ARRAY(Integer))  # If your reading this, please forgive me for this abomination
+  muted = Column(DateTime, nullable=True, default=None)
 
 class Server(Base):
   __tablename__ = "Servers"
@@ -72,6 +73,14 @@ class Role(Base):
     role_name = Column(String, nullable=False)
     permissions = Column(Integer, default=0)
     color = Column(String, default="#FF00E6")
+
+class Ban(Base):
+    __tablename__ = "Bans"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("Users.id"), nullable=False)
+    server_id = Column(Integer, ForeignKey("Servers.id"), nullable=False)
+    ban_date = Column(DateTime, nullable=False)
+    reason = Column(String, nullable=True)
 
 import os, dotenv
 from sqlalchemy import create_engine

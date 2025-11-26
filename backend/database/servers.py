@@ -30,6 +30,9 @@ def leave_server(user_id: int, server_id: int):
 def create_server(owner_id: int, name: str, invite_link: str):
     db_gen = models.get_db()
     db = next(db_gen)
+    usr = db.query(models.User).filter_by(id=owner_id).first()
+    if usr == None:
+        return {'status': "error", 'message': "owner doesnt exists"}
     try:    # try because of unique
         server = models.Server(name=name, owner_id=owner_id, invite_link=invite_link)
         db.add(server)
@@ -87,5 +90,20 @@ def change_server_name(server_id: int, new_name: str):
     db.commit()
     return {'status': "success"}
 
+def get_users_in_server(server_id: int):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    rels = db.query(models.User_Server).filter_by(server_id=server_id).all()
+    if rels == None:
+        return {'status': "error", 'message': "server doesnt exists"}
+    return {'status': "success", 'users':
+            [{
+                'user_id': rel.user_id,
+                'roles': rel.roles
+            } for rel in rels]
+        }
+
 if __name__ == "__main__":
     id = create_server(1, "test", "testlink")
+    #join_server(1, 1)
+    print(get_users_in_server(id['server_id']))
