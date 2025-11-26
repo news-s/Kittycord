@@ -52,8 +52,8 @@ def test_change_channel(client, db):
 def test_change_server(client, db):
     create_user("test", "pass")
     user_id = verify_user("test", "pass")
-    res = create_server(user_id, "testname", "testlink")
-    create_channel(res["server_id"], "testname")
+    res = create_server(user_id, "name", "link")
+    create_channel(res["server_id"], "name")
     token = create_access_token({"id": user_id})
 
     with client.websocket_connect(f"/ws?token={token}") as ws:
@@ -66,5 +66,5 @@ def test_change_server(client, db):
 
         assert data["status"] == 200
         assert len(data["channels"]) == 1
-        assert data["channels"][0][1] == "testname"
+        assert data["channels"][0]["name"] == "name"
         assert data["messages"] == []

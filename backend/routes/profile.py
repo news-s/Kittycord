@@ -28,7 +28,7 @@ class EditProfile(BaseModel):
     new_val: str
 
 @router.put("/edit_profile/display_name", status_code=200)
-async def edit_display_name(data: EditProfile):
+async def edit_display_name(data: EditProfile) -> str:
     user_id = verify_token(data.token)
 
     res = change_display_name(user_id, data.new_val)
@@ -37,7 +37,7 @@ async def edit_display_name(data: EditProfile):
 
 
 @router.put("/edit_profile/name", status_code=200)
-async def edit_name(data: EditProfile):
+async def edit_name(data: EditProfile) -> str:
     user_id = verify_token(data.token)
 
     res = change_name(user_id, data.new_val)
@@ -45,7 +45,7 @@ async def edit_name(data: EditProfile):
     return res["status"]
 
 @router.put("/edit_profile/note", status_code=200)
-async def edit_note(data: EditProfile):
+async def edit_note(data: EditProfile) -> str:
     user_id = verify_token(data.token)
 
     res = change_note(user_id, data.new_val)

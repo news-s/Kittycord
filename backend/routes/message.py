@@ -36,7 +36,7 @@ class EditMessage(BaseModel):
     new_content: str
 
 @router.put("/edit_message", status_code=200)
-async def edit_message(data: EditMessage):
+async def edit_message(data: EditMessage) -> str:
     user_id = verify_token(data.token)
     
     res = get_author(data.message_id)

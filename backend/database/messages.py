@@ -41,7 +41,7 @@ def get_author(id_message):
 def delete_message(id):
     db_gen = models.get_db()
     db = next(db_gen)
-    delete(models.Message).where(models.Message.id==id)
+    db.execute(delete(models.Message).where(models.Message.id==id))
     db.commit()
     return {'status': "success"}
     

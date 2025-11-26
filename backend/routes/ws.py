@@ -95,6 +95,15 @@ class Socket:
         
         channels = res["channels"]
 
+        if len(channels) == 0:
+            response = {
+                "status": 200,
+                "channels": [],
+                "messages": []
+            }
+            await self.websocket.send_json(json.dumps(response))
+            return
+
         res = get_last_messsages_from_channel(50, channels[0]["id"])
 
         if res["status"] == "error":
@@ -108,8 +117,8 @@ class Socket:
         
         response = {
             "status": 200,
-            "channels": [(channel["id"], channel["name"]) for channel in channels],
-            "messages": [(message["author_id"], message["date"], message["content"]) for message in messages]
+            "channels": [{"id": channel["id"], "name": channel["name"]} for channel in channels],
+            "messages": [{"author_id": message["author_id"], "date": message["date"], "content": message["content"]} for message in messages]
         }
         await self.websocket.send_json(json.dumps(response))
 

@@ -69,7 +69,7 @@ class EditServer(BaseModel):
     new_val: str
 
 @router.put("/edit_server/name", status_code=200)
-async def edit_server_name(data: EditServer):
+async def edit_server_name(data: EditServer) -> str:
     user_id = verify_token(data.token)
 
     res = get_owner_id(data.server_id)
@@ -88,7 +88,7 @@ async def edit_server_name(data: EditServer):
     return res["status"]
 
 @router.put("/edit_server/link", status_code=200)
-async def edit_server_link(data: EditServer):
+async def edit_server_link(data: EditServer) -> str:
     user_id = verify_token(data.token)
 
     res = get_owner_id(data.server_id)

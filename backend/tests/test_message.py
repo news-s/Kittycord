@@ -1,4 +1,4 @@
-from database.messages import store_channel_message
+from database.messages import store_channel_message, get_last_messsages_from_channel
 from database.channels import create_channel
 from database.servers import create_server
 from database.login import create_user, verify_user
@@ -19,6 +19,10 @@ def test_remove_message(client, db):
 
     assert res.status_code == 200
 
+    res = get_last_messsages_from_channel(50, channel_id)
+
+    assert res["messages"] == []
+
 def test_edit_message(client, db):
     create_user("name", "pass")
     user_id = verify_user("name", "pass")
@@ -34,3 +38,8 @@ def test_edit_message(client, db):
     })
 
     assert res.status_code == 200
+
+    res = get_last_messsages_from_channel(50, channel_id)
+
+    assert res["messages"][0]["author_id"] == user_id
+    assert res["messages"][0]["content"] == "test2"

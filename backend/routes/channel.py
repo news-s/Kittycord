@@ -14,7 +14,7 @@ class AddChannel(BaseModel):
     channel_name: str
 
 @router.post("/add_channel", status_code=201)
-async def add_channel(data: AddChannel) -> str:
+async def add_channel(data: AddChannel) -> int:
     user_id = verify_token(data.token)
     
     owner_id = get_owner_id(data.server_id)["owner_id"]
@@ -24,7 +24,7 @@ async def add_channel(data: AddChannel) -> str:
 
     res = create_channel(data.server_id, data.channel_name)
 
-    return res["status"]
+    return res["channel_id"]
 
 
 
