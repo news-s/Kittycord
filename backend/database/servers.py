@@ -12,7 +12,7 @@ def join_server(user_id: int, server_id: int):
     rel_check = db.query(models.User_Server).filter_by(user_id=user_id, server_id=server_id).first()
     if rel_check != None:
         return {'status': "error", 'message': "user already in server"}
-    rel = models.User_Server(user_id=user_id, server_id=server_id, permission=[], role=[])
+    rel = models.User_Server(user_id=user_id, server_id=server_id, role=[])
     db.add(rel)
     db.commit()
     return {'status': "success"}
@@ -79,7 +79,3 @@ def change_server_name(server_id: int, new_name: str):
 
 if __name__ == "__main__":
     id = create_server(1, "test", "test1")
-    print(id)
-    get_owner_id(id["server_id"])
-    get_server_by_link("test1")
-    delete_server(id["server_id"])

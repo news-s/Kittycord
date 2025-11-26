@@ -52,4 +52,3 @@ if __name__ == "__main__":
     create_user("test", "test")
     verify_user("test", "nah")
     verify_user("test", "test")
-    delete_user(1)

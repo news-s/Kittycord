@@ -59,13 +59,14 @@ class DM(Base):
     user_id_1 = Column(Integer, ForeignKey("Users.id"), nullable=False) # Author
     user_id_2 = Column(Integer, ForeignKey("Users.id"), nullable=False)
 
-class Friend_requests(Base):
+class Friend_request(Base):
     __tablename__ = "Friends"
     id = Column(Integer, primary_key=True)
     user_id_1 = Column(Integer, ForeignKey("Users.id"))
     user_id_2 = Column(Integer, ForeignKey("Users.id"))
 
-class Roles(Base):
+class Role(Base):
+    __tablename__ = "Roles"
     id = Column(Integer, primary_key=True)
     server_id = Column(Integer, ForeignKey("Servers.id"), nullable=False)
     role_name = Column(String, nullable=False)
