@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 from auth_token import verify_token
 from database.servers import get_server_by_link, join_server, create_server, delete_server, get_owner_id, set_invite_link, change_server_name
+from ws import broadcast
 
 
 router = APIRouter()
@@ -37,7 +38,7 @@ async def add_server(data: AddServer) -> AddServerResponse:
     res = create_server(int(user_id), data.server_name, data.invite_link)
 
     if res["status"] == "error":
-        return HTTPException(status_code=409, detail="Server invite link must be unique")
+        raise HTTPException(status_code=409, detail="Server invite link must be unique")
 
     return AddServerResponse(server_id=res["server_id"])
 
@@ -83,7 +84,16 @@ async def edit_server_name(data: EditServer) -> str:
     res = change_server_name(data.server_id, data.new_val)
 
     if res["status"] == "error":
-        return HTTPException(status_code=500, detail="Server initially found but failed to edit")
+        raise HTTPException(status_code=500, detail="Server initially found but failed to edit")
+
+    if res["status"] == "error":
+        return HTTPException(status_code=500, detail="Message changed but failed to broadcast")
+    
+    broadcast.broadcast({
+        "type": "edit_server_name",
+        "server_id": data.server_id,
+        "new_name": data.new_val,
+    })
     
     return res["status"]
 
@@ -102,7 +112,7 @@ async def edit_server_link(data: EditServer) -> str:
     res = set_invite_link(data.server_id, data.new_val)
 
     if res["status"] == "error":
-        return HTTPException(status_code=500, detail="Server initially found but failed to edit")
+        raise HTTPException(status_code=500, detail="Server initially found but failed to edit")
     
     return res["status"]
 

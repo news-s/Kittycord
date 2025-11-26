@@ -5,6 +5,7 @@ from database.servers import get_owner_id
 from database.channels import create_channel, get_server_id, delete_channel, change_channel_name
 
 from auth_token import verify_token
+from ws import broadcast
 
 router = APIRouter()
 
@@ -38,15 +39,15 @@ async def remove_channel(data: RemoveChannel) -> str:
     res = get_server_id(data.channel_id)
 
     if res["status"] == "error":
-        return HTTPException(status_code=404, detail="Channel not found")
+        raise HTTPException(status_code=404, detail="Channel not found")
     
     res = get_owner_id(res["server_id"])
 
     if res["status"] == "error":
-        return HTTPException(status_code=500, detail="Owner ID is None")
+        raise HTTPException(status_code=500, detail="Owner ID is None")
     
     if res["owner_id"] != user_id:
-        return HTTPException(status_code=403, detail="User is not owner")
+        raise HTTPException(status_code=403, detail="User is not owner")
     
     res = delete_channel(data.channel_id)
 
@@ -56,7 +57,7 @@ async def remove_channel(data: RemoveChannel) -> str:
 class EditChannel(BaseModel):
     token: str
     channel_id: int
-    channel_name: str
+    new_name: str
 
 @router.put("/edit_channel/name", status_code=200)
 async def edit_channel(data: EditChannel) -> str:
@@ -64,16 +65,27 @@ async def edit_channel(data: EditChannel) -> str:
     res = get_server_id(data.channel_id)
 
     if res["status"] == "error":
-        return HTTPException(status_code=404, detail="Channel not found")
+        raise HTTPException(status_code=404, detail="Channel not found")
     
+    server_id = res["server_id"]
     res = get_owner_id(res["server_id"])
 
     if res["status"] == "error":
-        return HTTPException(status_code=500, detail="Owner ID is None")
+        raise HTTPException(status_code=500, detail="Owner ID is None")
     
     if res["owner_id"] != user_id:
-        return HTTPException(status_code=403, detail="User is not owner")
+        raise HTTPException(status_code=403, detail="User is not owner")
     
-    res = change_channel_name(data.channel_id, data.channel_name)
+    res = change_channel_name(data.channel_id, data.new_name)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=500, detail="Channel initally found but failed to rename")
+    
+    broadcast.broadcast({
+        "type": "edit_channel_name",
+        "channel_id": res["channel_id"],
+        "server_id": server_id,
+        "new_content": data.new_name,
+    })
 
     return res["status"]

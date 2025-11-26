@@ -54,3 +54,11 @@ def change_message(id, new_content):
     message.text = new_content
     db.commit()
     return {'status': "success"}
+
+def channel_id_by_message_id(message_id):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    channel_id = db.query(models.Message).filter_by(id=message_id).first().channel_id
+    if channel_id == None:
+        return {'status': "error", 'message': "message doesnt exists"}
+    return {'status': "success", 'channel_id': channel_id}
