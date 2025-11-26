@@ -3,6 +3,8 @@ import json
 
 from auth_token import verify_token
 from database.messages import store_channel_message, get_last_messsages_from_channel
+from database.channels import get_channels
+from database.profile import get_user_data
 
 class Socket:
     websocket: WebSocket
@@ -14,47 +16,60 @@ class Socket:
         self.user_id = user_id
         self.current_channel = current_channel
 
-    async def send(self, message: str):
-        _ = await self.websocket.send_json(message)
+    async def send(self, message):
+        if message["channel_id"] == self.current_channel:
+            _ = await self.websocket.send_json(json.dumps(message))
+
+    async def handle_error(self, status_code: int, detail: str):
+        response = {
+                "status": status_code,
+                "detail": detail
+            }
+        await self.websocket.send_json(json.dumps(response))
+        return
 
     async def handle_message(self, msg: dict[str, str]):
+        if self.current_channel == None:
+            self.handle_error(400, "Channel not yet selected")
+            return
+
         if len(msg["content"]) > 1000:
-            response = {
-                "status": 400,
-                "message": "Message content is too long"
-            }
-            await self.websocket.send_json(json.dumps(response))
+            self.handle_error(400, "Message content is too long")
             return
         
 
-        id = store_channel_message(self.user_id, self.current_channel, msg["content"], None)
+        id = store_channel_message(self.user_id, self.current_channel, msg["content"], None)["message_id"]
 
         message = {
             "author_id": self.user_id,
             "channel_id": self.current_channel,
             "content": msg["content"],
-            "id": id # TODO return actual message id
+            "id": id
         }
-        await broadcast.broadcast(json.dumps(message))
+        await broadcast.broadcast(message)
 
 
         response = {
             "status": 201,
-            "id": id # TODO return actual message id
+            "id": id
         }
         await self.websocket.send_json(json.dumps(response))
 
     async def handle_channel(self, msg: dict[str, str]):
-        res = get_last_messsages_from_channel(50, msg["content"])
+        try:
+            channel_id = int(msg["content"])
+        except ValueError:
+            self.handle_error(400, "Channel ID is not a number")
+            return
+    
+        res = get_last_messsages_from_channel(50, channel_id)
 
         if res["status"] == "error":
-            response = {
-                "status": 404,
-                "message": "Channel not found"
-            }
-            await self.websocket.send_json(json.dumps(response))
+            self.handle_error(404, "Channel not found")
             return
         
+        self.current_channel = channel_id
+
         response = {
             "status": 200,
             "messages": res["messages"]
@@ -62,9 +77,48 @@ class Socket:
         await self.websocket.send_json(json.dumps(response, default=lambda o: o.__dict__))
 
     async def handle_server(self, msg: dict[str, str]):
+        res = get_user_data(self.user_id)
+
+        if res["status"] == "error":
+            self.handle_error(500, "Connected user doesn't exist")
+            return
+        
+        if int(msg["content"]) not in res["servers"]:
+            self.handle_error(403, "User is not member of the requested server")
+            return
+
+        res = get_channels(msg["content"])
+
+        if res["status"] == "error":
+            self.handle_error(404, "Server not found")
+            return
+        
+        channels = res["channels"]
+
+        if len(channels) == 0:
+            response = {
+                "status": 200,
+                "channels": [],
+                "messages": []
+            }
+            await self.websocket.send_json(json.dumps(response))
+            return
+
+        res = get_last_messsages_from_channel(50, channels[0]["id"])
+
+        if res["status"] == "error":
+            self.handle_error(500, "Channel found but failed to get messages")
+            return
+        
+
+        self.current_channel = channels[0]["id"]
+        
+        messages = res["messages"]
+        
         response = {
-            "status": 501,
-            "message": "Server change not yet implemented"
+            "status": 200,
+            "channels": [{"id": channel["id"], "name": channel["name"]} for channel in channels],
+            "messages": [{"author_id": message["author_id"], "date": message["date"], "content": message["content"]} for message in messages]
         }
         await self.websocket.send_json(json.dumps(response))
 
@@ -74,7 +128,7 @@ class Broadcaster:
     def __init__(self):
         self.connections = []
 
-    async def broadcast(self, message: str):
+    async def broadcast(self, message):
         for socket in self.connections:
             await socket.send(message)
 
@@ -97,10 +151,11 @@ async def ws(websocket: WebSocket):
 
     await websocket.accept()
 
-    socket = Socket(websocket, int(user_id), 1)
+    socket = Socket(websocket, int(user_id), None)
     broadcast.connections.append(socket)
     res = {
-        "status": 200
+        "status": 200,
+        "user_id": int(user_id)
     }
     await websocket.send_json(json.dumps(res))
     
@@ -110,12 +165,7 @@ async def ws(websocket: WebSocket):
             msg: dict[str, str] = json.loads(raw)
 
             if msg["type"] == "":
-                res = {
-                    "status": 400,
-                    "message": "Message type missing"
-                }
-                await websocket.send_json(json.dumps(res))
-                continue
+                socket.handle_error(400, "Message type missing")
 
             match msg["type"]:
                 case "message":
@@ -128,11 +178,7 @@ async def ws(websocket: WebSocket):
                     await socket.handle_server(msg)
 
                 case _:
-                    res = {
-                        "status": 400,
-                        "message": "Message type invalid"
-                    }
-                    await websocket.send_json(json.dumps(res))
+                    socket.handle_error(400, "Message type is invalid")
                 
     except WebSocketDisconnect:
         print(f"User {user_id} disconnected.")

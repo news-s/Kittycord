@@ -28,10 +28,10 @@ def create_user(name: str, password: str):
             return {'status': "error", 'error': "name already taken"}
 
         hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        user = models.User(name=name, display_name=name, password=hashed, account_creation_date=datetime.now())
+        user = models.User(name=name, display_name=name, password=hashed, account_creation_date=datetime.now(), note="")
         db.add(user)
         db.commit()
-        return {'status': "ok"}
+        return {'status': "success"}
     finally:
         db_gen.close()
 
@@ -44,7 +44,7 @@ def delete_user(id: int):
             return {'status': "error", 'error': "user not found"}
         db.delete(usr)
         db.commit()
-        return {'status': "ok"}
+        return {'status': "success"}
     finally:
         db_gen.close()
 

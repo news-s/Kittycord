@@ -81,6 +81,12 @@ Base.metadata.create_all(bind=engine)
 
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False,)
 
+def init_db(engine_url: str):
+    global engine, SessionLocal
+    engine = create_engine(engine_url)
+    SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+    Base.metadata.create_all(bind=engine)
+
 def get_db():
     db = SessionLocal()
     try:

@@ -12,7 +12,7 @@ def join_server(user_id: int, server_id: int):
     rel_check = db.query(models.User_Server).filter_by(user_id=user_id, server_id=server_id).first()
     if rel_check != None:
         return {'status': "error", 'message': "user already in server"}
-    rel = models.User_Server(user_id=user_id, server_id=server_id, role=[])
+    rel = models.User_Server(user_id=user_id, server_id=server_id, roles=[])
     db.add(rel)
     db.commit()
     return {'status': "success"}
@@ -46,7 +46,7 @@ def get_owner_id(server_id: int):
     db = next(db_gen)
     owner_id = db.query(models.Server).filter_by(id=server_id).first().owner_id
     if owner_id == None:
-        return {'status': "success", 'message': "Something doesnt seem right"}
+        return {'status': "error", 'message': "owner id missing"}
     return {'status': "success", 'owner_id': owner_id}
 
 def get_server_by_link(invite_link: str):

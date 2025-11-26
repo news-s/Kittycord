@@ -1,4 +1,5 @@
 from database import models
+from sqlalchemy import update
 
 def get_user_data(user_id: int):
     db_gen = models.get_db()
@@ -9,18 +10,19 @@ def get_user_data(user_id: int):
     servers = db.query(models.User_Server.server_id).filter_by(user_id=user_id).all()
     #TODO ma zwracać też zanjomych
     return {
+        "status": "success",
         "name": usr.name,
         "display_name": usr.display_name,
         "note": usr.note,
         "badges": usr.badges,
         "creation_date": usr.account_creation_date,
-        "servers": [server for server in servers],
+        "servers": [server[0] for server in servers],
     }
 
 def change_display_name(user_id: int, new_name: str):
     db_gen = models.get_db()
     db = next(db_gen)
-    db.query(models.User).filter_by(id=user_id).first().update(display_name=new_name)
+    db.execute(update(models.User).where(models.User.id==user_id).values(display_name=new_name))
     db.commit()
     return {'status': "success"}
 
@@ -30,14 +32,14 @@ def change_name(user_id: int, new_name: str):
     is_free = db.query(models.User).filter_by(name=new_name).first()
     if is_free != None:
         return {'status': "error", 'message': "name already taken"}
-    db.query(models.User).filter_by(id=user_id).first().update(name=new_name)
+    db.execute(update(models.User).where(models.User.id==user_id).values(name=new_name))
     db.commit()
     return {'status': "success"}
 
 def change_note(user_id: int, new_note: str):
     db_gen = models.get_db()
     db = next(db_gen)
-    db.query(models.User).filter_by(id=user_id).first().update(note=new_note)
+    db.execute(update(models.User).where(models.User.id==user_id).values(note=new_note))
     db.commit()
     return {'status': "success"}
 

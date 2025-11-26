@@ -1,4 +1,5 @@
 from database import models
+from sqlalchemy import delete
 
 def create_channel(server_id, name, role_needed = None):
     db_gen = models.get_db()
@@ -19,8 +20,8 @@ def delete_channel(channel_id):
     db_gen = models.get_db()
     db = next(db_gen)
     # Deleting all messages with channel id
-    db.query(models.Messages).filter_by(channel_id=channel_id).all().delete()
-    db.query(models.Channel).filter_by(id=channel_id).first().delete()
+    db.execute(delete(models.Message).where(models.Message.channel_id==channel_id))
+    db.execute(delete(models.Channel).where(models.Channel.id==channel_id))
     db.commit()
     return {'status': "success"}
 
