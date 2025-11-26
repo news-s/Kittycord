@@ -26,41 +26,35 @@
     }
 
     onMount(() => {
-        let token = localStorage.getItem('token');
-        if (token === undefined) window.location.href = '/login';
+        // let token = localStorage.getItem('token');
+        // if (token === undefined) window.location.href = '/login';
 
-        console.log('Token:', token);
+        // console.log('Token:', token);
 
-        let ws = new WebSocket(`ws://localhost:8000/ws?token=${token}`);
-        socket.set(ws);
+        // let ws = new WebSocket(`ws://localhost:8000/ws?token=${token}`);
+        // socket.set(ws);
 
-        ws.addEventListener("error", (err) => {
-            if (ws.readyState === WebSocket.CLOSED) {
-                console.error("Failed to connect to WebSocket server.");
-                window.location.href = '/login';
-            } else {
-                console.error("WebSocket error:", err);
-            }
-        });
+        // ws.addEventListener("error", (err) => {
+        //     if (ws.readyState === WebSocket.CLOSED) {
+        //         console.error("Failed to connect to WebSocket server.");
+        //         window.location.href = '/login';
+        //     } else {
+        //         console.error("WebSocket error:", err);
+        //     }
+        // });
 
-        ws.addEventListener('message', async (event) => {
-            const data = JSON.parse(JSON.parse(event.data));
-            console.log('Message from server:', data);
+        // ws.addEventListener('message', async (event) => {
+        //     const data = JSON.parse(JSON.parse(event.data));
+        //     console.log('Message from server:', data);
 
-            if(data.user_id === undefined || data.user_id === null) return;
+        //     if(data.user_id === undefined || data.user_id === null) return;
             
-            profile = await getProfile(data.user_id);
-        });
+        //     profile = await getProfile(data.user_id);
+        // });
     });
 </script>
 
-<div class="container">
+<div class="flex w-screen max-w-screen h-screen overflow-hidden relative">
     <ServersNavbar bind:servers={profile.servers} />
     {@render children()}
 </div>
-
-<style>
-    .container {
-        display: flex;
-    }
-</style>

@@ -128,3 +128,81 @@
 {/each}
 
 
+
+
+
+
+
+
+
+
+<style>
+
+.container {
+  display: flex;
+  gap: 10px;
+}
+
+.menu {
+  border: lightblue 2px solid;
+  width: 17%;
+}
+
+.menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu li {
+  position: relative;
+  margin: 5px 0;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.tooltip {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  margin-left: 10px;
+  background: #333;
+  color: white;
+  padding: 3px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-size: 0.9em;
+}
+
+.frame {
+  border: green 2px solid;
+}
+
+button {
+  cursor: pointer;
+}
+
+.modal {
+  position: relative;
+  background: black;
+  padding: 20px;
+  border: 2px solid #123;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px #12a;
+  color: white;
+  min-width: 250px;
+	top: 1%;
+}
+
+.modal .close {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+</style>
