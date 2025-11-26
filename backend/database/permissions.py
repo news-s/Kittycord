@@ -1,12 +1,12 @@
-import models
+from database import models
 
 # List below is inverted
 permissions = ["Mute members", "Kick members", "Ban members", "Manage channels", "Manage roles", "Manage server", "Admin"]
 
-def convert_to_permissions(n: int):
+def convert_to_permissions(n: str):
     result = {}
     for i, permission in enumerate(permissions):
-        result[permission] = bool(n & (1 << i))
+        result[permission] = bool(int(n[i]))
     return result
 
 def convert_to_string(perms: dict):
@@ -18,7 +18,8 @@ def convert_to_string(perms: dict):
             result.insert(0, "1")
         else:
             result.insert(0, "0")
-    return "".join(result).encode("utf-8")
+        
+    return "".join(result)
 
 def get_user_permissions(user_id: int, server_id: int):
     db_gen = models.get_db()

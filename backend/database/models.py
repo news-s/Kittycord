@@ -71,7 +71,7 @@ class Role(Base):
     id = Column(Integer, primary_key=True)
     server_id = Column(Integer, ForeignKey("Servers.id"), nullable=False)
     role_name = Column(String, nullable=False)
-    permissions = Column(Integer, default=0)
+    permissions = Column(String, default="")
     color = Column(String, default="#FF00E6")
 
 class Ban(Base):

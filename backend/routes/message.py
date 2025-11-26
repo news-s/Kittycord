@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 from auth_token import verify_token
 from database.messages import delete_message, get_author, change_message, channel_id_by_message_id
-from ws import broadcast
+from routes.ws import broadcast
 
 router = APIRouter()
 
@@ -61,7 +61,7 @@ async def edit_message(data: EditMessage) -> str:
     if res["status"] == "error":
         return HTTPException(status_code=500, detail="Message changed but failed to broadcast")
     
-    broadcast.broadcast({
+    await broadcast.broadcast({
         "type": "edit_message",
         "channel_id": res["channel_id"],
         "message_id": data.message_id,

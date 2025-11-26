@@ -5,7 +5,7 @@ from database.servers import get_owner_id
 from database.channels import create_channel, get_server_id, delete_channel, change_channel_name
 
 from auth_token import verify_token
-from ws import broadcast
+from routes.ws import broadcast
 
 router = APIRouter()
 
@@ -81,9 +81,9 @@ async def edit_channel(data: EditChannel) -> str:
     if res["status"] == "error":
         raise HTTPException(status_code=500, detail="Channel initally found but failed to rename")
     
-    broadcast.broadcast({
+    await broadcast.broadcast({
         "type": "edit_channel_name",
-        "channel_id": res["channel_id"],
+        "channel_id": data.channel_id,
         "server_id": server_id,
         "new_content": data.new_name,
     })

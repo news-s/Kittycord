@@ -12,10 +12,11 @@ class Socket:
     current_channel: int
     current_server: int
 
-    def __init__(self, websocket: WebSocket, user_id: int, current_channel: int):
+    def __init__(self, websocket: WebSocket, user_id: int):
         self.websocket = websocket
         self.user_id = user_id
-        self.current_channel = current_channel
+        self.current_channel = None
+        self.current_server = None
 
     async def send(self, message):
         match message["type"]:
@@ -192,7 +193,7 @@ async def ws(websocket: WebSocket):
 
     await websocket.accept()
 
-    socket = Socket(websocket, int(user_id), None, None)
+    socket = Socket(websocket, int(user_id))
     broadcast.connections.append(socket)
     res = {
         "status": 200,

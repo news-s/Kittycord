@@ -2,25 +2,46 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from auth_token import verify_token
-from database.servers import get_server_by_link, join_server, create_server, delete_server, get_owner_id, set_invite_link, change_server_name
-from ws import broadcast
+from database.servers import get_server_by_link, join_server, leave_server, create_server, delete_server, get_owner_id, set_invite_link, change_server_name
+from routes.ws import broadcast
 
 
 router = APIRouter()
 
+class JoinServer(BaseModel):
+    token: str
+    link: str
 
-@router.put("/join/{link}", status_code=200)
-async def join_server(link: str, token: str) -> int:
-    user_id = verify_token(token)
-    res = get_server_by_link(link)
+@router.put("/join", status_code=200)
+async def join(data: JoinServer) -> int:
+    user_id = verify_token(data.token)
+    res = get_server_by_link(data.link)
 
     if res["status"] == "error":
         raise HTTPException(status_code=404, detail="Server not found")
     
-    join_server(user_id, res["id"])
+    server_id = res["id"]
+    res = join_server(user_id, server_id)
 
-    return res["id"]
+    if res["status"] == "error":
+        raise HTTPException(status_code=500, detail="Server initally found but failed to join")
 
+    return server_id
+
+class LeaveServer(BaseModel):
+    token: str
+    server_id: int
+
+@router.put("/leave", status_code=200)
+async def leave(data: LeaveServer) -> str:
+    user_id = verify_token(data.token)
+
+    res = leave_server(user_id, data.server_id)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=400, detail="User is not member of server")
+    
+    return res["status"]
 
 
 class AddServer(BaseModel):
@@ -89,7 +110,7 @@ async def edit_server_name(data: EditServer) -> str:
     if res["status"] == "error":
         return HTTPException(status_code=500, detail="Message changed but failed to broadcast")
     
-    broadcast.broadcast({
+    await broadcast.broadcast({
         "type": "edit_server_name",
         "server_id": data.server_id,
         "new_name": data.new_val,
