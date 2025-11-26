@@ -17,6 +17,16 @@ def join_server(user_id: int, server_id: int):
     db.commit()
     return {'status': "success"}
 
+def leave_server(user_id: int, server_id: int):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    rel = db.query(models.User_Server).filter_by(user_id=user_id, server_id=server_id).first()
+    if rel == None:
+        return {'status': "error", 'message': "user not in server"}
+    db.delete(rel)
+    db.commit()
+    return {'status': "success"}
+
 def create_server(owner_id: int, name: str, invite_link: str):
     db_gen = models.get_db()
     db = next(db_gen)
@@ -78,4 +88,4 @@ def change_server_name(server_id: int, new_name: str):
     return {'status': "success"}
 
 if __name__ == "__main__":
-    id = create_server(1, "test", "test1")
+    id = create_server(1, "test", "testlink")

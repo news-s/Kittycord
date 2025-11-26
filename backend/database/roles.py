@@ -114,8 +114,19 @@ def get_roles_in_server(server_id: int):
             } for r in roles]
         }
 
+def change_role_name(role_id: int, new_name: str):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    role = db.query(models.Role).filter_by(id=role_id).first()
+    if role == None:
+        return {'status': "error", 'message': "Role does not exist"}
+    role.role_name = new_name
+    db.commit()
+    return {'status': "success"}
+
 if __name__ == "__main__":
-    print(create_role(1, "Moderator", {
+    server_id = 2
+    print(create_role(server_id, "Moderator", {
         "Mute members": True,
         "Kick members": True,
         "Ban members": False,
@@ -124,7 +135,7 @@ if __name__ == "__main__":
         "Manage server": False,
         "Admin": False
     }, "#00FF00"))
-    create_role(1, "Admin", {
+    create_role(server_id, "Admin", {
         "Mute members": True,
         "Kick members": True,
         "Ban members": True,
@@ -133,14 +144,15 @@ if __name__ == "__main__":
         "Manage server": True,
         "Admin": True
     }, "#FF0000")
-    print(get_roles_in_server(1))
-    reorder_roles(1, [2, 1])
-    print(get_roles_in_server(1))
-    add_role_to_user(1, 1, 1)
-    print(permissions.get_user_permissions(1, 1))
+    print(get_roles_in_server(server_id))
+    reorder_roles(server_id, [2, 1])
+    print(get_roles_in_server(server_id))
+    add_role_to_user(1, server_id, 1)
+    print(permissions.get_user_permissions(1, server_id))
     change_role_color(1, "#0000FF")
+    change_role_name(1, "Super Moderator")
     print(get_role_color(1))
     print(get_server_id_by_role(1))
-    remove_role_from_user(1, 1, 1)
+    remove_role_from_user(1, server_id, 1)
     delete_role(1)
     delete_role(2)
