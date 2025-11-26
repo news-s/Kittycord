@@ -71,6 +71,7 @@ class Role(Base):
     server_id = Column(Integer, ForeignKey("Servers.id"), nullable=False)
     role_name = Column(String, nullable=False)
     permissions = Column(Integer, default=0)
+    color = Column(String, default="#FF00E6")
 
 import os, dotenv
 from sqlalchemy import create_engine
