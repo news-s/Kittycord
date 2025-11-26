@@ -1,5 +1,5 @@
 <script>
-  import { dmUser, dmMessages } from "../dm/store.js";
+  import { dmUser, dmMessages } from "../../dm/store.js";
   import { goto } from "$app/navigation";
 
 	class Channel {
