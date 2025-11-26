@@ -11,7 +11,6 @@
 
         const input = document.querySelector('.text-input');
         const message = input.value.trim();
-        input.value = ""; 
 
         if(!message) return;
 
@@ -19,7 +18,14 @@
             type: "message",
             content: message
         }));
+
+        event.target.reset()
     }
+
+    onMount(() => {
+        const form = document.forms["message-form"];
+        form.addEventListener("submit", SendMessage);
+    });
 </script>
 
 <div class="messages-container">
@@ -34,7 +40,7 @@
             </div>
         {/each}
     </div>
-    <form class="input-wrapper" name="message-form" onsubmit={SendMessage}>
+    <form class="input-wrapper" name="message-form">
         <input type="text" placeholder="Message" class="text-input"/>
         <input type="submit" value="->" class="submit-input"/>
     </form>
@@ -59,7 +65,7 @@
     }
 
     .messages-container {
-        width: calc(100svw - 248px);
+        width: calc(100svw - 272px);
         height: 100svh;
         background-color: #aaa;
 
