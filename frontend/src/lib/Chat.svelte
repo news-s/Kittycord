@@ -11,7 +11,6 @@
 
         const input = document.querySelector('.text-input');
         const message = input.value.trim();
-        input.value = ""; 
 
         if(!message) return;
 
@@ -19,7 +18,14 @@
             type: "message",
             content: message
         }));
+
+        event.target.reset()
     }
+
+    onMount(() => {
+        const form = document.forms["message-form"];
+        form.addEventListener("submit", SendMessage);
+    });
 </script>
 
 <div class="flex-1 flex flex-col" style="background: linear-gradient(180deg, #FDF4FF 0%, #EDE9FE 100%);">

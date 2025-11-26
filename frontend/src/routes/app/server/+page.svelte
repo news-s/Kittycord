@@ -26,6 +26,8 @@
         
         if(message.channels) channels = message.channels;
         if(message.messages) messages = message.messages;
+
+        if(message.message_id !== null && message.message_id !== undefined) messages.push(message);
     }
 
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -39,7 +41,10 @@
         while(!connected) {
             if($socket?.readyState === WebSocket.OPEN)break;
             tries += 1;
-            if(tries > 3) window.location.pathname = "/login"
+            if(tries > 3) {
+                window.location.pathname = "/login"
+                return;
+            };
             console.warn("Not connected to the web socket. Retrying in 1 second...");
 
             await sleep(1000)
@@ -64,7 +69,7 @@
         if(server_id === null)return;
 
         try {
-            const res = await fetch(`http://localhost:8000/add_channel`, {
+            const res = await fetch("http://localhost:8000/add_channel", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -87,11 +92,28 @@
     }
 
     async function SwitchChannel(channel_id) {
-        if($socket?.readyState !== WebSocket.OPEN || channel_id === null || channel_id === undefined)return;
+        if($socket?.readyState !== WebSocket.OPEN || (channel_id === null && channel_id === undefined))return;
 
         $socket.send(JSON.stringify({
             type: "channel",
             content: channel_id
+        }));
+    }
+
+    async function HandleCreatingChannel() {
+        if($socket?.readyState !== WebSocket.OPEN)return;
+
+        const token = localStorage.getItem('token');
+        const input = document.getElementById('channel-name');
+        const channel_name = input.value;
+        const id = await CreateChannel(token, channel_name);
+
+        channels.push(id);
+        open = false;
+
+        $socket.send(JSON.stringify({
+            type: "channel",
+            content: id
         }));
     }
 </script>
@@ -175,8 +197,10 @@
 
     <Chat bind:messages={messages}></Chat>
 
-    <div class="w-60 bg-[#f7f3f9] border-l border-pink-200/50 flex flex-col">
-        <!-- members sidebar -->
+    <div class="w-60 bg-[#f7f3f9] border-l border-pink-200/50 flex flex-col flex-shrink-0">
+        <div class="p-4">
+            <h3 class="text-sm font-semibold text-gray-700">Members</h3>
+        </div>
     </div>
 </div>
 

@@ -1,12 +1,12 @@
 <script>
     import { onMount } from "svelte";
-    import { socket } from "./stores.js";
+    import { socket, profile } from "./stores.js";
     import ServersNavbar from "$lib/ServersNavbar.svelte";
+	import Profile from "$lib/Profile.svelte";
 
     let {children} = $props();
 
-    let profile = $state({});
-    async function getProfile(user_id) {
+    async function GetProfile(user_id) {
         try {
             const res = await fetch(`http://localhost:8000/profile/${user_id}`, {
                 method: "GET",
@@ -49,12 +49,13 @@
 
         //     if(data.user_id === undefined || data.user_id === null) return;
             
-        //     profile = await getProfile(data.user_id);
+        //     const profile_data = await GetProfile(data.user_id);
+        //     profile.set(profile_data);
         // });
     });
 </script>
 
 <div class="flex w-screen max-w-screen h-screen overflow-hidden relative">
-    <ServersNavbar bind:servers={profile.servers} />
+    <ServersNavbar bind:servers={$profile.servers} />
     {@render children()}
 </div>
