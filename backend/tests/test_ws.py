@@ -22,14 +22,12 @@ def test_send_message(client, db):
 
         ws.send_json({"type": "message", "content": "test"})
         ws.receive_json()
-        ws.receive_json()
 
         ws.send_json({"type": "channel", "content": channel_id})
 
         res = ws.receive_json()
-        data = json.loads(res)
 
-        assert data["messages"][0]["content"] == "test"
+        assert res["messages"][0]["content"] == "test"
         
 
 def test_change_channel(client, db):
@@ -45,10 +43,9 @@ def test_change_channel(client, db):
         ws.send_json({"type": "channel", "content": channel_id})
 
         res = ws.receive_json()
-        data = json.loads(res)
 
-        assert data["status"] == 200
-        assert data["messages"] == []
+        assert res["status"] == 200
+        assert res["messages"] == []
 
 def test_change_server(client, db):
     create_user("test", "pass")
@@ -63,9 +60,8 @@ def test_change_server(client, db):
         ws.send_json({"type": "server", "content": res["server_id"]})
 
         res = ws.receive_json()
-        data = json.loads(res)
 
-        assert data["status"] == 200
-        assert len(data["channels"]) == 1
-        assert data["channels"][0]["name"] == "name"
-        assert data["messages"] == []
+        assert res["status"] == 200
+        assert len(res["channels"]) == 1
+        assert res["channels"][0]["name"] == "name"
+        assert res["messages"] == []

@@ -1,11 +1,14 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from database.servers import get_owner_id
+from utils import has_permission, is_member
+from database.profile import get_user_data
 from database.channels import create_channel, get_server_id, delete_channel, change_channel_name
 
 from auth_token import verify_token
 from routes.ws import broadcast
+
+CHANNEL_PERM = "Manage channels"
 
 router = APIRouter()
 
@@ -18,10 +21,11 @@ class AddChannel(BaseModel):
 async def add_channel(data: AddChannel) -> int:
     user_id = verify_token(data.token)
     
-    owner_id = get_owner_id(data.server_id)["owner_id"]
-
-    if owner_id != user_id:
-        raise HTTPException(status_code=403, detail="User is not the owner")
+    if not is_member(user_id, data.server_id):
+        raise HTTPException(status_code=400, detail=f"User is not member of server")
+    
+    if not has_permission(user_id, data.server_id, CHANNEL_PERM):
+        raise HTTPException(status_code=403, detail=f"User is missing {CHANNEL_PERM} permission")
 
     res = create_channel(data.server_id, data.channel_name)
 
@@ -41,13 +45,11 @@ async def remove_channel(data: RemoveChannel) -> str:
     if res["status"] == "error":
         raise HTTPException(status_code=404, detail="Channel not found")
     
-    res = get_owner_id(res["server_id"])
-
-    if res["status"] == "error":
-        raise HTTPException(status_code=500, detail="Owner ID is None")
+    if not is_member(user_id, res["server_id"]):
+        raise HTTPException(status_code=400, detail=f"User is not member of server")
     
-    if res["owner_id"] != user_id:
-        raise HTTPException(status_code=403, detail="User is not owner")
+    if not has_permission(user_id, res["server_id"], CHANNEL_PERM):
+        raise HTTPException(status_code=403, detail=f"User is missing {CHANNEL_PERM} permission")
     
     res = delete_channel(data.channel_id)
 
@@ -68,13 +70,12 @@ async def edit_channel(data: EditChannel) -> str:
         raise HTTPException(status_code=404, detail="Channel not found")
     
     server_id = res["server_id"]
-    res = get_owner_id(res["server_id"])
-
-    if res["status"] == "error":
-        raise HTTPException(status_code=500, detail="Owner ID is None")
     
-    if res["owner_id"] != user_id:
-        raise HTTPException(status_code=403, detail="User is not owner")
+    if not is_member(user_id, server_id):
+        raise HTTPException(status_code=400, detail=f"User is not member of server")
+    
+    if not has_permission(user_id, server_id, CHANNEL_PERM):
+        raise HTTPException(status_code=403, detail=f"User does not have the {CHANNEL_PERM} permission")
     
     res = change_channel_name(data.channel_id, data.new_name)
 

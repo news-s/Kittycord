@@ -1,11 +1,10 @@
 from database import models
 
-# List below is inverted
 permissions = ["Mute members", "Kick members", "Ban members", "Manage channels", "Manage roles", "Manage server", "Admin"]
 
 def convert_to_permissions(n: str):
     result = {}
-    for i, permission in enumerate(permissions):
+    for i, permission in enumerate(permissions[::-1]):
         result[permission] = bool(int(n[i]))
     return result
 
@@ -28,9 +27,10 @@ def get_user_permissions(user_id: int, server_id: int):
     if user_server == None:
         return {'status': "error", 'message': "Invalid data"}
     roles = user_server.roles
-    combined_permissions = 0
+    combined_permissions = ['0' for _ in permissions]
     for role_id in roles:
-        role = db.query(models.Roles).filter_by(id=role_id).first()
+        role = db.query(models.Role).filter_by(id=role_id).first()
         if role:
-            combined_permissions |= role.permissions
-    return {'status': "success", 'permissions': convert_to_permissions(combined_permissions)}
+            for i, char in enumerate(role.permissions):
+                combined_permissions[i] = '1' if char == '1' else '0'
+    return {'status': "success", 'permissions': convert_to_permissions("".join(combined_permissions))}

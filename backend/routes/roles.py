@@ -3,10 +3,13 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
 from auth_token import verify_token
+from utils import has_permission, is_member
 from database.permissions import convert_to_permissions
 from database.roles import add_role_to_user, change_role_name, create_role, delete_role, get_server_id_by_role, reorder_roles, set_role_permissions, change_role_color, remove_role_from_user
 from database.servers import get_owner_id
 from database.permissions import permissions
+
+ROLES_PERM = "Manage roles"
 
 router = APIRouter()
 
@@ -25,13 +28,12 @@ def add_role(data: AddRole) -> int:
 
     user_id = verify_token(data.token)
 
-    res = get_owner_id(data.server_id)
+    if not is_member(user_id, data.server_id):
+        raise HTTPException(status_code=400, detail=f"User is not member of server")
 
-    if res["status"] == "error":
-        raise HTTPException(status_code=404, detail="Server not found")
-
-    if res["owner_id"] != user_id:
-        raise HTTPException(status_code=403, detail="User is not owner")
+    if not has_permission(user_id, data.server_id, ROLES_PERM):
+        print("test")
+        raise HTTPException(status_code=403, detail=f"User is missing {ROLES_PERM} permission")
 
     res = create_role(data.server_id, data.role_name, convert_to_permissions("0000000"), data.role_color)
 
@@ -53,15 +55,14 @@ def add_role_to(data: AddRoleToUser) -> str:
 
     if res["status"] == "error":
         raise HTTPException(status_code=404, detail="Role doesn't exist")
-
+    
     server_id = res["server_id"]
-    res = get_owner_id(server_id)
+    
+    if not is_member(user_id, server_id):
+        raise HTTPException(status_code=400, detail=f"User is not member of server")
 
-    if res["status"] == "error":
-        raise HTTPException(status_code=500, detail="Server found but owner ID is None")
-
-    if res["owner_id"] != user_id:
-        raise HTTPException(status_code=403, detail="User is not owner")
+    if not has_permission(user_id, server_id, ROLES_PERM):
+        raise HTTPException(status_code=403, detail=f"User is missing {ROLES_PERM} permission")
 
     res = add_role_to_user(data.user_id, server_id, data.role_id)
 
@@ -82,15 +83,14 @@ def remove_role(data: RemoveRole) -> str:
 
     if res["status"] == "error":
         raise HTTPException(status_code=404, detail="Role doesn't exist")
-
+    
     server_id = res["server_id"]
-    res = get_owner_id(server_id)
-
-    if res["status"] == "error":
-        raise HTTPException(status_code=404, detail="Server not found")
-
-    if res["owner_id"] != user_id:
-        raise HTTPException(status_code=403, detail="User is not owner")
+    
+    if not is_member(user_id, server_id):
+        raise HTTPException(status_code=400, detail=f"User is not member of server")
+    
+    if not has_permission(user_id, res["server_id"], ROLES_PERM):
+        raise HTTPException(status_code=403, detail=f"User is missing {ROLES_PERM} permission")
 
     res = delete_role(data.role_id)
 
@@ -113,15 +113,14 @@ def remove_role_from(data: RemoveRoleFromUser) -> str:
 
     if res["status"] == "error":
         raise HTTPException(status_code=404, detail="Role doesn't exist")
-
-    server_id = res["server_id"]
-    res = get_owner_id(server_id)
     
-    if res["status"] == "error":
-        raise HTTPException(status_code=500, detail="Server found but owner ID is None")
-
-    if res["owner_id"] != user_id:
-        raise HTTPException(status_code=403, detail="User is not owner")
+    server_id = res["server_id"]
+    
+    if not is_member(user_id, server_id):
+        raise HTTPException(status_code=400, detail=f"User is not member of server")
+    
+    if not has_permission(user_id, server_id, ROLES_PERM):
+        raise HTTPException(status_code=403, detail=f"User is missing {ROLES_PERM} permission")
 
     res = remove_role_from_user(user_id, server_id, data.role_id)
 
@@ -144,15 +143,12 @@ def edit_name(data: EditRole) -> str:
 
     if res["status"] == "error":
         raise HTTPException(status_code=404, detail="Role doesn't exist")
+    
+    if not is_member(user_id, res["server_id"]):
+        raise HTTPException(status_code=400, detail=f"User is not member of server")
 
-    server_id = res["server_id"]
-    res = get_owner_id(server_id)
-
-    if res["status"] == "error":
-        raise HTTPException(status_code=500, detail="Server found but owner ID is None")
-
-    if res["owner_id"] != user_id:
-        raise HTTPException(status_code=403, detail="User is not owner")
+    if not has_permission(user_id, res["server_id"], ROLES_PERM):
+        raise HTTPException(status_code=403, detail=f"User is missing {ROLES_PERM} permission")
 
     res = change_role_name(data.role_id, data.new_val)
 
@@ -173,15 +169,12 @@ def edit_color(data: EditRole) -> str:
 
     if res["status"] == "error":
         raise HTTPException(status_code=404, detail="Role doesn't exist")
+    
+    if not is_member(user_id, res["server_id"]):
+        raise HTTPException(status_code=400, detail=f"User is not member of server")
 
-    server_id = res["server_id"]
-    res = get_owner_id(server_id)
-
-    if res["status"] == "error":
-        raise HTTPException(status_code=500, detail="Server found but owner ID is None")
-
-    if res["owner_id"] != user_id:
-        raise HTTPException(status_code=403, detail="User is not owner")
+    if not has_permission(user_id, res["server_id"], ROLES_PERM):
+        raise HTTPException(status_code=403, detail=f"User is missing {ROLES_PERM} permission")
 
     res = change_role_color(data.role_id, data.new_val)
 
@@ -207,14 +200,11 @@ def edit_permissions(data: EditRolePermissions) -> str:
     if res["status"] == "error":
         raise HTTPException(status_code=404, detail="Role doesn't exist")
 
-    server_id = res["server_id"]
-    res = get_owner_id(server_id)
-
-    if res["status"] == "error":
-        raise HTTPException(status_code=500, detail="Server found but owner ID is None")
-
-    if res["owner_id"] != user_id:
-        raise HTTPException(status_code=403, detail="User is not owner")
+    if not has_permission(user_id, res["server_id"], ROLES_PERM):
+        raise HTTPException(status_code=403, detail=f"User is missing {ROLES_PERM} permission")
+    
+    if data.new_permissions["Admin"] and not has_permission(user_id, res["server_id"], "Admin"):
+        raise HTTPException(status_code=403, detail=f"User is missing Admin permission")
 
     res = set_role_permissions(data.role_id, data.new_permissions)
 
@@ -232,14 +222,12 @@ class EditRoleOrder(BaseModel):
 @router.put("/edit_server/role_order", status_code=200)
 async def edit_role_oder(data: EditRoleOrder) -> str:
     user_id = verify_token(data.token)
-
-    res = get_owner_id(data.server_id)
-
-    if res["status"] == "error":
-        raise HTTPException(status_code=404, detail="Server not found")
     
-    if res["owner_id"] != user_id:
-        raise HTTPException(status_code=403, detail="User is not owner")
+    if not is_member(user_id, data.server_id):
+        raise HTTPException(status_code=400, detail=f"User is not member of server")
+
+    if not has_permission(user_id, data.server_id, ROLES_PERM):
+        raise HTTPException(status_code=403, detail=f"User is missing {ROLES_PERM} permission")
 
     res = reorder_roles(data.server_id, data.new_order)
 

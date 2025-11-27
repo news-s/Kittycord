@@ -35,6 +35,7 @@ class Channel(Base):
   server_id = Column(Integer, ForeignKey("Servers.id"), nullable=False)
   name = Column(String, nullable=False)
   role_needed = Column(String, nullable=True)
+  color = Column(String, default="#FF00E6")
 
 class Message(Base):
     __tablename__ = "Messages"

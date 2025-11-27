@@ -2,11 +2,14 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from auth_token import verify_token
+from utils import has_permission, is_member
 from database.servers import get_server_by_link, join_server, leave_server, create_server, delete_server, get_owner_id, set_invite_link, change_server_name
 from routes.ws import broadcast
 
+SERVER_PERM = "Manage server"
 
 router = APIRouter()
+
 
 class JoinServer(BaseModel):
     token: str
@@ -94,13 +97,11 @@ class EditServer(BaseModel):
 async def edit_server_name(data: EditServer) -> str:
     user_id = verify_token(data.token)
 
-    res = get_owner_id(data.server_id)
-    
-    if res["status"] == "error":
-        raise HTTPException(status_code=404, detail="Server doesn't exist")
+    if not is_member(user_id, data.server_id):
+        raise HTTPException(status_code=400, detail=f"User is not member of server")
 
-    if res["owner_id"] != user_id:
-        raise HTTPException(status_code=403, detail="User is not owner")
+    if not has_permission(user_id, data.server_id, SERVER_PERM):
+        raise HTTPException(status_code=403, detail=f"User is missing {SERVER_PERM} permission")
     
     res = change_server_name(data.server_id, data.new_val)
 
@@ -122,13 +123,11 @@ async def edit_server_name(data: EditServer) -> str:
 async def edit_server_link(data: EditServer) -> str:
     user_id = verify_token(data.token)
 
-    res = get_owner_id(data.server_id)
-    
-    if res["status"] == "error":
-        raise HTTPException(status_code=404, detail="Server doesn't exist")
+    if not is_member(user_id, data.server_id):
+        raise HTTPException(status_code=400, detail=f"User is not member of server")
 
-    if res["owner_id"] != user_id:
-        raise HTTPException(status_code=403, detail="User is not owner")
+    if not has_permission(user_id, data.server_id, SERVER_PERM):
+        raise HTTPException(status_code=403, detail=f"User is missing {SERVER_PERM} permission")
 
     res = set_invite_link(data.server_id, data.new_val)
 

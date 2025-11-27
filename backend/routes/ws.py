@@ -1,5 +1,6 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 import json
+import datetime
 
 from auth_token import verify_token
 from database.messages import store_channel_message, get_last_messsages_from_channel
@@ -19,27 +20,27 @@ class Socket:
         self.current_server = None
 
     async def send(self, message):
+        # TODO remove_message, remove_channel, remove_server, add_channel, leave_server, join_server
         match message["type"]:
             case "new_message":
-                if message["channel_id"] != self.current_channel:
+                if message["channel_id"] != self.current_channel or message["author_id"] == self.user_id:
                     return
-                _ = await self.websocket.send_json(json.dumps(message))
+                _ = await self.websocket.send_json(message)
             
             case "edit_message":
                 if message["channel_id"] != self.current_channel:
                     return
-                _ = await self.websocket.send_json(json.dumps(message))
+                _ = await self.websocket.send_json(message)
 
             case  "edit_channel_name":
                 if message["server_id"] != self.current_server:
                     return
-                _ = await self.websocket.send_json(json.dumps(message))
+                _ = await self.websocket.send_json(message)
 
-            case "edit_server_name":
+            case "edit_server":
                 if message["server_id"] != self.current_server:
                     return
-                _ = await self.websocket.send_json(json.dumps(message))
-
+                _ = await self.websocket.send_json(message)
             
 
     async def handle_error(self, status_code: int, detail: str):
@@ -47,16 +48,16 @@ class Socket:
                 "status": status_code,
                 "detail": detail
             }
-        await self.websocket.send_json(json.dumps(response))
+        await self.websocket.send_json(response)
         return
 
     async def handle_message(self, msg: dict[str, str]):
         if self.current_channel == None:
-            self.handle_error(400, "Channel not yet selected")
+            await self.handle_error(400, "Channel not yet selected")
             return
 
         if len(msg["content"]) > 1000:
-            self.handle_error(400, "Message content is too long")
+            await self.handle_error(400, "Message content is too long")
             return
         
 
@@ -66,6 +67,7 @@ class Socket:
             "type": "new_message",
             "author_id": self.user_id,
             "channel_id": self.current_channel,
+            "date": str(datetime.datetime.now()),
             "content": msg["content"],
             "id": id
         }
@@ -74,38 +76,43 @@ class Socket:
 
         response = {
             "status": 201,
+            "type": "new_message",
+            "author_id": self.user_id,
+            "channel_id": self.current_channel,
+            "date": str(datetime.datetime.now()),
+            "content": msg["content"],
             "id": id
         }
-        await self.websocket.send_json(json.dumps(response))
+        await self.websocket.send_json(response)
 
     async def handle_channel(self, msg: dict[str, str]):
         try:
             channel_id = int(msg["content"])
         except ValueError:
-            self.handle_error(400, "Channel ID is not a number")
+            await self.handle_error(400, "Channel ID is not a number")
             return
         
         res = get_server_id(channel_id)
 
         if res["status"] == "error":
-            self.handle_error(404, "Channel not found")
+            await self.handle_error(404, "Channel not found")
             return
 
         server_id = res["server_id"]
         res = get_user_data(self.user_id)
 
         if res["status"] == "error":
-            self.handle_error(404, "User doesn't exist")
+            await self.handle_error(404, "User doesn't exist")
             return
         
         if int(server_id) not in res["servers"]:
-            self.handle_error(403, "User is not member of the requested server")
+            await self.handle_error(403, "User is not member of the requested server")
             return
     
         res = get_last_messsages_from_channel(50, channel_id)
 
         if res["status"] == "error":
-            self.handle_error(500, "Channel initially found but failed to load messages")
+            await self.handle_error(500, "Channel initially found but failed to load messages")
             return
         
         self.current_channel = channel_id
@@ -115,23 +122,23 @@ class Socket:
             "status": 200,
             "messages": res["messages"]
         }
-        await self.websocket.send_json(json.dumps(response, default=lambda o: o.__dict__))
+        await self.websocket.send_json(response)
 
     async def handle_server(self, msg: dict[str, str]):
         res = get_user_data(self.user_id)
 
         if res["status"] == "error":
-            self.handle_error(500, "Connected user doesn't exist")
+            await self.handle_error(500, "Connected user doesn't exist")
             return
         
         if int(msg["content"]) not in res["servers"]:
-            self.handle_error(403, "User is not member of the requested server")
+            await self.handle_error(403, "User is not member of the requested server")
             return
 
         res = get_channels(msg["content"])
 
         if res["status"] == "error":
-            self.handle_error(404, "Server not found")
+            await self.handle_error(404, "Server not found")
             return
         
         channels = res["channels"]
@@ -142,13 +149,13 @@ class Socket:
                 "channels": [],
                 "messages": []
             }
-            await self.websocket.send_json(json.dumps(response))
+            await self.websocket.send_json(response)
             return
 
         res = get_last_messsages_from_channel(50, channels[0]["id"])
 
         if res["status"] == "error":
-            self.handle_error(500, "Channel found but failed to get messages")
+            await self.handle_error(500, "Channel found but failed to get messages")
             return
         
 
@@ -159,10 +166,14 @@ class Socket:
         
         response = {
             "status": 200,
-            "channels": [{"id": channel["id"], "name": channel["name"]} for channel in channels],
-            "messages": [{"author_id": message["author_id"], "date": message["date"], "content": message["content"]} for message in messages]
+            "channels": [{
+                "id": channel["id"],
+                "name": channel["name"],
+                "color": channel["color"]
+                } for channel in channels],
+            "messages": messages
         }
-        await self.websocket.send_json(json.dumps(response))
+        await self.websocket.send_json(response)
 
 class Broadcaster:
     connections: list[Socket]
@@ -172,7 +183,10 @@ class Broadcaster:
 
     async def broadcast(self, message):
         for socket in self.connections:
-            await socket.send(message)
+            try:
+                await socket.send(message)
+            except Exception:
+                self.connections.remove(socket)
 
 
 router = APIRouter()
@@ -199,7 +213,7 @@ async def ws(websocket: WebSocket):
         "status": 200,
         "user_id": int(user_id)
     }
-    await websocket.send_json(json.dumps(res))
+    await websocket.send_json(res)
     
     try:
         while True:
@@ -223,4 +237,4 @@ async def ws(websocket: WebSocket):
                     socket.handle_error(400, "Message type is invalid")
                 
     except WebSocketDisconnect:
-        print(f"User {user_id} disconnected.")
+        pass

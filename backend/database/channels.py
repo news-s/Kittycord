@@ -41,6 +41,7 @@ def get_channels(server_id):
             [{
                 'id': c.id,
                 'name': c.name,
+                'color': c.color,
                 'role_needed': c.role_needed
             } for c in channels]
         }
@@ -66,5 +67,15 @@ def change_channel_role_needed(channel_id, new_role_needed):
     if new_role_needed not in roles:
         return {'status': "error", 'message': "role_needed doesnt exists"}
     channel.role_needed = new_role_needed
+    db.commit()
+    return {'status': "success"}
+
+def change_channel_color(channel_id: int, new_color: str):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    channel = db.query(models.Channel).filter_by(id=channel_id).first()
+    if channel == None:
+        return {'status': "error", 'message': "Channel does not exist"}
+    channel.color = new_color
     db.commit()
     return {'status': "success"}
