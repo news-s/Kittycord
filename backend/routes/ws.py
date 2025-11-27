@@ -20,27 +20,38 @@ class Socket:
         self.current_server = None
 
     async def send(self, message):
-        # TODO remove_message, remove_channel, remove_server, add_channel, leave_server, join_server
-        match message["type"]:
-            case "new_message":
-                if message["channel_id"] != self.current_channel or message["author_id"] == self.user_id:
-                    return
+        classes = message["class"]
+        message["class"] = None
+
+        should_send = False
+        
+        for classifier in classes:
+            match classifier:
+                case "user":
+                    should_send = message["user_id"] == self.user_id
+
+                case "channel":
+                    should_send =  message["channel_id"] == self.current_channel
+                    
+                case "server":
+                    should_send =  message["server_id"] == self.current_server
+
+                case "reset_ids":
+                    if message["type"] == "remove_channel" and message["channel_id"] == self.current_channel:
+                        self.current_channel = None
+                        self.current_server = None
+                    if message["type"] == "remove_server" and message["server_id"] == self.current_server:
+                        self.current_channel = None
+                        self.current_server = None
+                
+                case _:
+                    pass
+
+            if should_send:
                 _ = await self.websocket.send_json(message)
+                print(message)
             
-            case "edit_message":
-                if message["channel_id"] != self.current_channel:
-                    return
-                _ = await self.websocket.send_json(message)
-
-            case  "edit_channel_name":
-                if message["server_id"] != self.current_server:
-                    return
-                _ = await self.websocket.send_json(message)
-
-            case "edit_server":
-                if message["server_id"] != self.current_server:
-                    return
-                _ = await self.websocket.send_json(message)
+        return
             
 
     async def handle_error(self, status_code: int, detail: str):
@@ -64,26 +75,19 @@ class Socket:
         id = store_channel_message(self.user_id, self.current_channel, msg["content"], None)["message_id"]
 
         message = {
+            "class": ["channel"],
             "type": "new_message",
             "author_id": self.user_id,
             "channel_id": self.current_channel,
             "date": str(datetime.datetime.now()),
             "content": msg["content"],
-            "id": id
+            "message_id": id
         }
         await broadcast.broadcast(message)
 
 
-        response = {
-            "status": 201,
-            "type": "new_message",
-            "author_id": self.user_id,
-            "channel_id": self.current_channel,
-            "date": str(datetime.datetime.now()),
-            "content": msg["content"],
-            "id": id
-        }
-        await self.websocket.send_json(response)
+        message["status"] = 201
+        await self.websocket.send_json(message)
 
     async def handle_channel(self, msg: dict[str, str]):
         try:
@@ -183,10 +187,10 @@ class Broadcaster:
 
     async def broadcast(self, message):
         for socket in self.connections:
-            try:
+            # try:
                 await socket.send(message)
-            except Exception:
-                self.connections.remove(socket)
+            # except Exception:
+            #     self.connections.remove(socket)
 
 
 router = APIRouter()

@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 from auth_token import verify_token
 from utils import has_permission
-from database.messages import delete_message, get_author, change_message, channel_id_by_message_id
+from database.messages import delete_message, get_author, change_message, channel_id_by_message_id, get_channel_from_mesage
 from routes.ws import broadcast
 
 MESSAGE_PERM = "Manage channels"
@@ -26,11 +26,20 @@ async def remove_message(data: RemoveMessage) -> str:
     if res["author_id"] != user_id:
         if not has_permission(user_id, data.server_id, MESSAGE_PERM):
             raise HTTPException(status_code=403, detail=f"User is missing {MESSAGE_PERM} permission")
+        
+    channel_id = get_channel_from_mesage(data.message_id)["message_id"]
 
     res = delete_message(data.message_id)
     
     if res["status"] == "error":
         raise HTTPException(status_code=500, detail="Message initially found but failed to delete")
+    
+    await broadcast.broadcast({
+        "class": ["channel"],
+        "type": "remove_message",
+        "channel_id": channel_id,
+        "message_id": data.message_id,
+    })
     
     return res["status"]
 
@@ -66,6 +75,7 @@ async def edit_message(data: EditMessage) -> str:
         return HTTPException(status_code=500, detail="Message changed but failed to broadcast")
     
     await broadcast.broadcast({
+        "class": ["channel"],
         "type": "edit_message",
         "channel_id": res["channel_id"],
         "message_id": data.message_id,

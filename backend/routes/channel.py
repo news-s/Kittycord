@@ -29,6 +29,17 @@ async def add_channel(data: AddChannel) -> int:
 
     res = create_channel(data.server_id, data.channel_name)
 
+    if res["status"] == "error":
+        raise HTTPException(status_code=500, detail="Failed to create channel")
+
+    await broadcast.broadcast({
+        "class": ["server"],
+        "type": "add_channel",
+        "server_id": data.server_id,
+        "channel_id": res["channel_id"],
+        "channel_name": data.channel_name,
+    })
+
     return res["channel_id"]
 
 
@@ -45,13 +56,22 @@ async def remove_channel(data: RemoveChannel) -> str:
     if res["status"] == "error":
         raise HTTPException(status_code=404, detail="Channel not found")
     
-    if not is_member(user_id, res["server_id"]):
+    server_id = res["server_id"]
+    
+    if not is_member(user_id, server_id):
         raise HTTPException(status_code=400, detail=f"User is not member of server")
     
     if not has_permission(user_id, res["server_id"], CHANNEL_PERM):
         raise HTTPException(status_code=403, detail=f"User is missing {CHANNEL_PERM} permission")
     
     res = delete_channel(data.channel_id)
+
+    await broadcast.broadcast({
+        "class": ["server", "reset_ids"],
+        "type": "remove_channel",
+        "channel_id": data.channel_id,
+        "server_id": server_id,
+    })
 
     return res["status"]
 
@@ -83,6 +103,7 @@ async def edit_channel(data: EditChannel) -> str:
         raise HTTPException(status_code=500, detail="Channel initally found but failed to rename")
     
     await broadcast.broadcast({
+        "class": ["channel"],
         "type": "edit_channel_name",
         "channel_id": data.channel_id,
         "server_id": server_id,

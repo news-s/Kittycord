@@ -28,6 +28,14 @@ async def join(data: JoinServer) -> int:
 
     if res["status"] == "error":
         raise HTTPException(status_code=500, detail="Server initally found but failed to join")
+    
+
+    await broadcast.broadcast({
+        "class": ["server"],
+        "type": "leave_server",
+        "user_id": user_id,
+        "server_id": server_id,
+    })
 
     return server_id
 
@@ -43,6 +51,13 @@ async def leave(data: LeaveServer) -> str:
 
     if res["status"] == "error":
         raise HTTPException(status_code=400, detail="User is not member of server")
+    
+    await broadcast.broadcast({
+        "class": ["server"],
+        "type": "leave_server",
+        "user_id": user_id,
+        "server_id": data.server_id,
+    })
     
     return res["status"]
 
@@ -84,6 +99,11 @@ async def remove_server(data: RemoveServer) -> str:
         raise HTTPException(status_code=403, detail="User is not owner")
 
     res = delete_server(data.server_id)
+
+    await broadcast.broadcast({
+        "type": "remove_server",
+        "server_id": data.server_id
+    })
     
     return res["status"]
 

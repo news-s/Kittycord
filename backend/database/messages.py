@@ -38,6 +38,15 @@ def get_author(id_message):
         return {'status': "error",  'message': "message doesnt exist"}
     return {'status': "success", 'author_id': message.user_id}
 
+
+def get_channel_from_mesage(id_message):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    message = db.query(models.Message).filter_by(id=id_message).first()
+    if message == None:
+        return {'status': "error",  'message': "message doesnt exist"}
+    return {'status': "success", 'message_id': message.channel_id}
+
 def delete_message(id):
     db_gen = models.get_db()
     db = next(db_gen)
