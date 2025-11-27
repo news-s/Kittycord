@@ -49,7 +49,6 @@ def delete_user(id: int):
         db_gen.close()
 
 if __name__ == "__main__":
-    create_user("test", "test")
+    create_user("test2", "test")
     verify_user("test", "nah")
     verify_user("test", "test")
-    delete_user(1)

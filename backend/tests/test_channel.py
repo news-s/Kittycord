@@ -50,7 +50,7 @@ def test_edit_channel(client, db):
     res = client.put("/edit_channel/name", json={
         "token": token,
         "channel_id": channel_id,
-        "channel_name": "name2"
+        "new_name": "name2"
     })
 
     assert res.status_code == 200

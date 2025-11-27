@@ -12,14 +12,30 @@ def join_server(user_id: int, server_id: int):
     rel_check = db.query(models.User_Server).filter_by(user_id=user_id, server_id=server_id).first()
     if rel_check != None:
         return {'status': "error", 'message': "user already in server"}
+    banned = db.query(models.Ban).filter_by(user_id=user_id, server_id=server_id).first()
+    if banned != None:
+        return {'status': "error", 'message': "user is banned from server"}
     rel = models.User_Server(user_id=user_id, server_id=server_id, roles=[])
     db.add(rel)
+    db.commit()
+    return {'status': "success"}
+
+def leave_server(user_id: int, server_id: int):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    rel = db.query(models.User_Server).filter_by(user_id=user_id, server_id=server_id).first()
+    if rel == None:
+        return {'status': "error", 'message': "user not in server"}
+    db.delete(rel)
     db.commit()
     return {'status': "success"}
 
 def create_server(owner_id: int, name: str, invite_link: str):
     db_gen = models.get_db()
     db = next(db_gen)
+    usr = db.query(models.User).filter_by(id=owner_id).first()
+    if usr == None:
+        return {'status': "error", 'message': "owner doesnt exists"}
     try:    # try because of unique
         server = models.Server(name=name, owner_id=owner_id, invite_link=invite_link)
         db.add(server)
@@ -77,9 +93,33 @@ def change_server_name(server_id: int, new_name: str):
     db.commit()
     return {'status': "success"}
 
+def get_users_in_server(server_id: int):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    rels = db.query(models.User_Server).filter_by(server_id=server_id).all()
+    if rels == None:
+        return {'status': "error", 'message': "server doesnt exists"}
+    return {'status': "success", 'users':
+            [{
+                'user_id': rel.user_id,
+                'roles': rel.roles
+            } for rel in rels]
+        }
+
+def get_servers_of_user(user_id: int):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    rels = db.query(models.User_Server).filter_by(user_id=user_id).all()
+    if rels == None:
+        return {'status': "error", 'message': "user doesnt exists"}
+    return {'status': "success", 'servers':
+            [{
+                'server_id': rel.server_id,
+                'roles': rel.roles
+            } for rel in rels]
+        }
+
 if __name__ == "__main__":
-    id = create_server(1, "test", "test1")
-    print(id)
-    get_owner_id(id["server_id"])
-    get_server_by_link("test1")
-    delete_server(id["server_id"])
+    id = create_server(1, "test", "testlink")
+    #join_server(1, 1)
+    print(get_users_in_server(id['server_id']))

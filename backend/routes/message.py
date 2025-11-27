@@ -2,8 +2,11 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from auth_token import verify_token
+from utils import has_permission
 from database.messages import delete_message, get_author, change_message, channel_id_by_message_id
-from ws import broadcast
+from routes.ws import broadcast
+
+MESSAGE_PERM = "Manage channels"
 
 router = APIRouter()
 
@@ -21,7 +24,8 @@ async def remove_message(data: RemoveMessage) -> str:
         raise HTTPException(status_code=404, detail="Message not found")
     
     if res["author_id"] != user_id:
-        raise HTTPException(status_code=403, detail="User is not author")
+        if not has_permission(user_id, data.server_id, MESSAGE_PERM):
+            raise HTTPException(status_code=403, detail=f"User is missing {MESSAGE_PERM} permission")
 
     res = delete_message(data.message_id)
     
@@ -61,7 +65,7 @@ async def edit_message(data: EditMessage) -> str:
     if res["status"] == "error":
         return HTTPException(status_code=500, detail="Message changed but failed to broadcast")
     
-    broadcast.broadcast({
+    await broadcast.broadcast({
         "type": "edit_message",
         "channel_id": res["channel_id"],
         "message_id": data.message_id,

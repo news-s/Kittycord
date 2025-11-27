@@ -20,6 +20,7 @@ class User_Server(Base):
   user_id = Column(Integer, ForeignKey("Users.id"))
   server_id = Column(Integer, ForeignKey("Servers.id"))
   roles = Column(ARRAY(Integer))  # If your reading this, please forgive me for this abomination
+  muted = Column(DateTime, nullable=True, default=None)
 
 class Server(Base):
   __tablename__ = "Servers"
@@ -34,6 +35,7 @@ class Channel(Base):
   server_id = Column(Integer, ForeignKey("Servers.id"), nullable=False)
   name = Column(String, nullable=False)
   role_needed = Column(String, nullable=True)
+  color = Column(String, default="#FF00E6")
 
 class Message(Base):
     __tablename__ = "Messages"
@@ -59,18 +61,27 @@ class DM(Base):
     user_id_1 = Column(Integer, ForeignKey("Users.id"), nullable=False) # Author
     user_id_2 = Column(Integer, ForeignKey("Users.id"), nullable=False)
 
-class Friend_requests(Base):
+class Friend_request(Base):
     __tablename__ = "Friends"
     id = Column(Integer, primary_key=True)
     user_id_1 = Column(Integer, ForeignKey("Users.id"))
     user_id_2 = Column(Integer, ForeignKey("Users.id"))
 
-class Roles(Base):
+class Role(Base):
     __tablename__ = "Roles"
     id = Column(Integer, primary_key=True)
     server_id = Column(Integer, ForeignKey("Servers.id"), nullable=False)
     role_name = Column(String, nullable=False)
-    permissions = Column(Integer, default=0)
+    permissions = Column(String, default="")
+    color = Column(String, default="#FF00E6")
+
+class Ban(Base):
+    __tablename__ = "Bans"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("Users.id"), nullable=False)
+    server_id = Column(Integer, ForeignKey("Servers.id"), nullable=False)
+    ban_date = Column(DateTime, nullable=False)
+    reason = Column(String, nullable=True)
 
 import os, dotenv
 from sqlalchemy import create_engine
