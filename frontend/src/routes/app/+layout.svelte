@@ -44,7 +44,7 @@
         });
 
         ws.addEventListener('message', async (event) => {
-            const data = JSON.parse(JSON.parse(event.data));
+            const data = JSON.parse(event.data);
             console.log('Message from server:', data);
 
             if(data.user_id === undefined || data.user_id === null) return;
@@ -58,7 +58,7 @@
 
 <div class="container">
     <ServersNavbar servers={$profile.servers} />
-    <Profile />
+    <!-- <Profile /> -->
     {@render children()}
 </div>
 

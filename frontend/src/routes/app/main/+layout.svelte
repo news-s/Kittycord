@@ -1,6 +1,6 @@
 <script>
     import { profile } from "../stores";
-    let children = $props();
+    let { children } = $props();
 
 </script>
 
@@ -11,7 +11,7 @@
         {/each}
     </div>
 
-    <!-- {@render children()} -->
+    {@render children()}
 </div>
 
 <style>

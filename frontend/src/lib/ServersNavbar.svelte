@@ -26,12 +26,6 @@
             console.error("Fetch error:", err);
         }
     }
-
-    function OpenServer(id) {
-        window.location.pathname = "/app/server"
-        window.location.search = "?id=" + id
-        // window.location.reload();
-    }
 </script>
 
 <nav class="servers">
@@ -39,8 +33,8 @@
         <div class="dms"></div>
     </a>
 
-    {#each servers as server, id}
-        <a href={`server?id=${id}`} title={id}>
+    {#each servers as id}
+        <a href={"/app/server/" + id} title={id}>
             <div class="server"></div>
         </a>
     {/each}
