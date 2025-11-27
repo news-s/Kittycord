@@ -48,22 +48,15 @@
             console.log('Message from server:', data);
 
             if(data.user_id === undefined || data.user_id === null) return;
-            
+
             const profile_data = await GetProfile(data.user_id);
             profile.set(profile_data);
-            console.log($profile)
         });
     });
 </script>
 
-<div class="container">
+<div class="flex w-screen max-w-screen h-screen overflow-hidden relative">
     <ServersNavbar servers={$profile.servers} />
-    <!-- <Profile /> -->
+    <Profile />
     {@render children()}
 </div>
-
-<style>
-    .container {
-        display: flex;
-    }
-</style>
