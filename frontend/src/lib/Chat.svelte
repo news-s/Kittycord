@@ -156,7 +156,7 @@
     </div>
 
     <div class="flex justify-center items-center w-full px-6 py-6 border-t border-pink-300/50 bg-white/50">
-        <form onsubmit={SendMessage} class="relative w-full">
+        <form onsubmit={SendMessage} class="relative w-full" name="message-form">
             <input 
                 type="text" 
                 placeholder="Message #cute-cats" 

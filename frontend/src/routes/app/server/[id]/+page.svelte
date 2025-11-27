@@ -197,16 +197,49 @@
 
 </script>
 
-<div class="server-container">
-    <div class="channels-container">
-        <button class="server-options" onclick={ServerOptions}>Server Options</button>
+<div class="flex" style="width: calc(100vw - 72px); height: 100vh; max-width: calc(100vw - 72px); overflow: hidden;">
+    <div class="w-60 bg-[#f7f3f9] border-r border-pink-200/50 flex flex-col flex-shrink-0">
+        <div class="h-14 px-4 flex items-center justify-between border-b border-pink-200/50">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-pink-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+                <span class="font-semibold text-gray-800">server-name</span>
+                <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+        </div>
 
-        {#each channels as channel}
-            <div class="channel-wrapper">
-                <button class="channel" onclick={() => SwitchChannel(channel.channel_id)}>{channel.channel_name}</button>
-                <!-- enable editing when user has permission -->
-                
-                <!-- {$if $profile.id === channel.owner_id} --> 
+        <div class="flex-1 overflow-y-auto px-2 py-3">
+            <div class="flex items-center justify-between px-2 py-1">
+                <button class="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-800 font-semibold uppercase tracking-wide">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                    Text Channels
+                </button>
+                <button 
+                    onclick={() => open = !open}
+                    aria-label="Create Channel"
+                    class="p-1 hover:bg-pink-100/60 rounded text-gray-600 hover:text-gray-800"
+                >
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mt-1 space-y-0.5">
+                {#each channels as channel}
+                    <button 
+                        onclick={() => SwitchChannel(channel.channel_id)} 
+                        class="w-full flex items-center gap-2 px-2 py-1.5 rounded text-gray-700 hover:bg-pink-100/60 hover:text-gray-900 group"
+                    >
+                        <span class="text-purple-500 group-hover:text-purple-600">#</span>
+                        <span class="text-sm font-medium">{channel.channel_name}</span>
+                    </button>
+
                     <button 
                         class="edit-channel" 
                         onclick={ () => {
@@ -215,25 +248,47 @@
                             editing_channel.name = channel.channel_name;
                         }}
                     >
-                        ...
+                    ...
                     </button>
-                <!-- {/if}  -->
-
+                {/each}
             </div>
-        {/each}
-    
-        <button class="create-channel" onclick={() => open = !open}>Create Channel</button>
+        </div>
     </div>
-    
+
     <Chat bind:messages={messages}></Chat>
+
+    <div class="w-60 bg-[#f7f3f9] border-l border-pink-200/50 flex flex-col flex-shrink-0">
+        <div class="p-4">
+            <h3 class="text-sm font-semibold text-gray-700">Members</h3>
+        </div>
+    </div>
 </div>
 
 {#if open}
-    <div class="modal">
-        <h2>Create Channel</h2>
-        <input type="text" placeholder="Channel Name" id="channel-name"/>
-        <button onclick={() => HandleCreatingChannel()}>Create</button>
-        <button onclick={() => open = false}>Cancel</button>
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl p-8 w-96 shadow-2xl border border-pink-200/50">
+            <h2 class="text-2xl font-semibold text-purple-900 mb-6">Create Channel</h2>
+            <input 
+                type="text" 
+                placeholder="Channel Name" 
+                id="channel-name"
+                class="w-full px-4 py-3 rounded-xl bg-white/80 border border-pink-200 text-gray-800 placeholder-gray-400 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
+            />
+            <div class="flex gap-3">
+                <button 
+                    onclick={() => open = false}
+                    class="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-colors"
+                >Cancel</button>
+                <button 
+                    onclick={HandleCreatingChannel}
+                    class="flex-1 px-4 py-2.5 rounded-xl text-white font-medium transition-colors shadow-lg"
+                    style="background: linear-gradient(135deg, #E9D5FF 0%, #BFDBFE 70.71%);"
+                >
+                    <span class="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-semibold">Create</span>
+                </button>
+                <button onclick={() => open = false}>Cancel</button>
+            </div>
+        </div>
     </div>
 {/if}
 
@@ -248,36 +303,6 @@
 {/if}
 
 <style>
-    .channel-wrapper {
-        display: flex;
-        background-color: #bbb;
-    }
-    
-    .edit-channel {
-        height: 40px;
-        aspect-ratio: 1/1;
-    }
-
-    .server-container {
-        display: flex;
-    }
-
-    .channels-container {
-        width: 200px;
-        height: 100svh;
-        background-color: #ccc;
-
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .channel, .create-channel, .server-options {
-        width: 100%;
-        height: 40px;
-
-    }
-
     .modal {
         width: 200px;
         height: 200px;
