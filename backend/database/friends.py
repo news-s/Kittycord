@@ -65,7 +65,6 @@ def get_friends(user_id: int):
     user = db.query(models.User).filter_by(id=user_id).first()
     if user == None:
         return {'status': "error", 'message': "user doesnt exists"}
-    print("test")
     return {'status': "success", 'friends': user.friends}
 
 if __name__ == "__main__":

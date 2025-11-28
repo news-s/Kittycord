@@ -201,11 +201,30 @@ class Socket:
             "is_muted": is_muted,
         })
 
+    async def handle_status(self, msg: dict[str, str]):
+        if msg["content"] == "Online" and self.user_id not in broadcast.connected_ids:
+            broadcast.connected_ids[self.user_id] = None
+            await self.websocket.send_json({
+                "status": 200
+            })
+            return
+        
+        if msg["content"] == "Offline" and self.user_id in broadcast.connected_ids:
+            broadcast.connected_ids.pop(self.user_id, None)
+            await self.websocket.send_json({
+                "status": 200
+            })
+            return
+        
+        await self.handle_error(400, "User status is already set to requested status or status is invalid")
+
 class Broadcaster:
     connections: list[Socket]
+    connected_ids: dict[int, None]
 
     def __init__(self):
         self.connections = []
+        self.connected_ids = {}
 
     async def broadcast(self, message):
         for socket in self.connections:
@@ -232,6 +251,7 @@ async def ws(websocket: WebSocket):
 
     socket = Socket(websocket, int(user_id))
     broadcast.connections.append(socket)
+    broadcast.connected_ids[int(user_id)] = None
     await websocket.send_json({
         "status": 200,
         "user_id": int(user_id)
@@ -243,7 +263,7 @@ async def ws(websocket: WebSocket):
             msg: dict[str, str] = json.loads(raw)
 
             if msg["type"] == "":
-                socket.handle_error(400, "Message type missing")
+                await socket.handle_error(400, "Message type missing")
 
             match msg["type"]:
                 case "message":
@@ -255,8 +275,12 @@ async def ws(websocket: WebSocket):
                 case "server":
                     await socket.handle_server(msg)
 
+                case "status":
+                    await socket.handle_status(msg)
+
                 case _:
                     socket.handle_error(400, "Message type is invalid")
                 
     except WebSocketDisconnect:
         broadcast.connections.remove(socket)
+        broadcast.connected_ids.pop(int(user_id), None)

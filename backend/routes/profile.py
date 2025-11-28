@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from auth_token import verify_token
 from database.profile import get_user_data, change_name, change_display_name, change_note
 from database.permissions import get_user_permissions
+from routes.ws import broadcast
 
 router = APIRouter()
 
@@ -14,18 +15,22 @@ class ProfileResponse(BaseModel):
     note: str
     servers: list[int]
     friends: list[str]
+    status: str
 
 
 @router.get("/profile/{user_id}", status_code=200)
-async def profile(user_id) -> ProfileResponse:
+async def profile(user_id: int) -> ProfileResponse:
     user_data = get_user_data(user_id)
 
     if user_data["status"] == "error":
         raise HTTPException(status_code=404, detail="User not found")
+
+    print(broadcast.connected_ids)
     
     return ProfileResponse(
         user_id=user_id, name=user_data["name"], display_name=user_data["display_name"],
-        note=user_data["note"], servers=user_data["servers"], friends=user_data["friends"]
+        note=user_data["note"], servers=user_data["servers"], friends=user_data["friends"],
+        status="Online" if user_id in broadcast.connected_ids else "Offline"
     )
 
 

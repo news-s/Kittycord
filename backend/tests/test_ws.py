@@ -66,3 +66,32 @@ def test_change_server(client, db):
         assert len(res["channels"]) == 1
         assert res["channels"][0]["channel_name"] == "name"
         assert res["messages"] == []
+
+
+def test_set_status(client, db):
+    create_user("test", "pass")
+    user_id = verify_user("test", "pass")
+    token = create_access_token({"id": user_id})
+
+    with client.websocket_connect(f"/ws?token={token}") as ws:
+        ws.receive_json()
+
+        ws.send_json({"type": "status", "content": "Online"})
+        res = ws.receive_json()
+
+        assert res["status"] == 400
+
+        ws.send_json({"type": "status", "content": "Offline"})
+        res = ws.receive_json()
+
+        assert res["status"] == 200
+
+        ws.send_json({"type": "status", "content": "Offline"})
+        res = ws.receive_json()
+
+        assert res["status"] == 400
+
+        ws.send_json({"type": "status", "content": "Online"})
+        res = ws.receive_json()
+
+        assert res["status"] == 200
