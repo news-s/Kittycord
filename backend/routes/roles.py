@@ -130,7 +130,7 @@ def remove_role_from(data: RemoveRoleFromUser) -> str:
     return res["status"]
     
 
-@router.get("/roles_in_server/{server_id}")
+@router.get("/roles_in_server/{server_id}", status_code=200)
 async def roles_in_server(server_id: int):
     res = get_roles_in_server(server_id)
 

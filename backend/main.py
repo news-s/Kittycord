@@ -4,7 +4,7 @@ import uvicorn
 import os, dotenv
 from database import models
 
-from routes import admin_tools, login, profile, channel, server, message, roles, friends, ws
+from routes import admin_tools, login, profile, channel, server, message, roles, friends, dms, ws
 
 dotenv.load_dotenv()
 models.init_db(
@@ -31,6 +31,7 @@ app.include_router(server.router)
 app.include_router(message.router)
 app.include_router(roles.router)
 app.include_router(friends.router)
+app.include_router(dms.router)
 app.include_router(ws.router)
 
 

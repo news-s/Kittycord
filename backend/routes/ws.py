@@ -3,6 +3,8 @@ import json
 import datetime
 
 from auth_token import verify_token
+from database.friends import is_friends
+from database.dms import get_messsages_from_dm, store_direct_message
 from database.servers import get_owner_id
 from database.roles import get_user_roles_in_server
 from database.admin_tool import is_user_muted
@@ -13,16 +15,22 @@ from database.profile import get_user_data
 class Socket:
     websocket: WebSocket
     user_id: int
+    
     current_channel: int
     current_server: int
     is_muted: bool
 
+    current_dm: int
+
     def __init__(self, websocket: WebSocket, user_id: int):
         self.websocket = websocket
         self.user_id = user_id
+
         self.current_channel = None
         self.current_server = None
         self.is_muted = False
+
+        self.current_dm = None
 
     async def send(self, message):
         classes = message["class"].copy()
@@ -49,6 +57,12 @@ class Socket:
                         self.current_channel = None
                         self.current_server = None
 
+                case "author":
+                    should_send = self.user_id == message["author_id"]
+
+                case "reciever":
+                    should_send = self.user_id == message["reciever_id"]
+
                 case "mute":
                     if self.user_id == message["user_id"] and self.current_server == message["server_id"]:
                         self.is_muted = True
@@ -57,6 +71,7 @@ class Socket:
                     if self.user_id == message["user_id"] and self.current_server == message["server_id"]:
                         self.is_muted = False
                 
+
                 case _:
                     pass
 
@@ -85,9 +100,8 @@ class Socket:
         if len(msg["content"]) > 1000:
             await self.handle_error(400, "Message content is too long")
             return
-        
 
-        id = store_channel_message(self.user_id, self.current_channel, msg["content"], None)["message_id"]
+        message_id = store_channel_message(self.user_id, self.current_channel, msg["content"], None)["message_id"]
 
         await broadcast.broadcast({
             "class": ["channel"],
@@ -96,7 +110,7 @@ class Socket:
             "channel_id": self.current_channel,
             "date": str(datetime.datetime.now()),
             "content": msg["content"],
-            "message_id": id
+            "message_id": message_id
         })
 
         await self.websocket.send_json({
@@ -136,7 +150,12 @@ class Socket:
             await self.handle_error(403, "User does not have the required role to view this channel")
             return
     
-        res = get_last_messsages_from_channel(50, channel_id)
+
+        try:
+            start_from = msg["start_from"]
+        except KeyError:
+            start_from = 0
+        res = get_last_messsages_from_channel(50, channel_id, start_count=start_from)
 
         if res["status"] == "error":
             await self.handle_error(500, "Channel initially found but failed to load messages")
@@ -144,6 +163,7 @@ class Socket:
         
         is_muted = is_user_muted(self.user_id, server_id)["muted"]
         
+        self.current_dm = None
         self.current_channel = channel_id
         self.current_server = server_id
         self.is_muted = is_muted
@@ -198,6 +218,7 @@ class Socket:
             return
         
 
+        self.current_dm = None
         self.current_channel = channels[0]["id"]
         self.current_server = int(msg["content"])
         
@@ -232,6 +253,57 @@ class Socket:
             return
         
         await self.handle_error(400, "User status is already set to requested status or status is invalid")
+
+    
+    async def handle_dm(self, msg: dict[str, str]):
+        if len(msg["content"]) > 1000:
+            await self.handle_error(400, "Message content is too long")
+            return
+        
+        if self.current_dm == None:
+            await self.handle_error(400, "DM not yet selected")
+            return
+        
+        dm_id = store_direct_message(self.user_id, self.current_dm, msg["content"], None)
+        
+        await broadcast.broadcast({
+            "class": ["reciever", "author"],
+            "type": "new_dm",
+            "reciever_id": self.current_dm,
+            "author_id": self.user_id,
+            "date": str(datetime.datetime.now()),
+            "content": msg["content"],
+            "message_id": dm_id
+        })
+
+        await self.websocket.send_json({
+            "status": 201,
+            "message": "success"
+        })
+
+    
+    async def handle_load_dms(self, msg: dict[str, str]):
+        if not is_friends(self.user_id, msg["content"]):
+            await self.handle_error(403, "User is not friend with target")
+            return
+        
+        try:
+            start_from = msg["start_from"]
+        except KeyError:
+            start_from = 0
+        res = get_messsages_from_dm(50, self.user_id, msg["content"], start_from)
+        
+        self.current_dm = msg["content"]
+        self.current_channel = None
+        self.current_server = None
+        self.is_muted = False
+
+        await self.websocket.send_json({
+            "status": 200,
+            "type": "load_dms",
+            "messages": res["messages"],
+        })
+
 
 class Broadcaster:
     connections: list[Socket]
@@ -292,6 +364,12 @@ async def ws(websocket: WebSocket):
 
                 case "status":
                     await socket.handle_status(msg)
+
+                case "dm":
+                    await socket.handle_dm(msg)
+                
+                case "load_dms":
+                    await socket.handle_load_dms(msg)
 
                 case _:
                     socket.handle_error(400, "Message type is invalid")
