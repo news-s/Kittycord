@@ -28,6 +28,7 @@ class Server(Base):
   name = Column(String, nullable=False)
   owner_id = Column(Integer, ForeignKey("Users.id"), nullable=False)
   invite_link = Column(String, nullable=False, unique=True) # For localhost:2137/invite/__code__, store here only __code__
+  role_order = Column(ARRAY(Integer))   
 
 class Channel(Base):
   __tablename__ = "Channels"

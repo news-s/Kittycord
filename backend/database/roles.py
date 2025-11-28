@@ -38,15 +38,23 @@ def create_role(server_id: int, role_name: str, perms_dict: dict, color: str):
     db.add(role)
     db.commit()
     db.refresh(role)
+    if server.role_order is None:
+        server.role_order = []
+    server.role_order.append(role.id)
+    db.execute(update(models.Server).where(models.Server.id==server_id).values(role_order=server.role_order))
+    db.commit()
     return {'status': "success", 'role_id': role.id, 'role_color': role.color}
 
 def delete_role(role_id: int):
     db_gen = models.get_db()
     db = next(db_gen)
-    role = delete(models.Role).where(models.Role.id == role_id)
-    if role == None:
+    role = db.query(models.Role).filter_by(id=role_id).first()
+    if role is None:
         return {'status': "error", 'message': "Role does not exist"}
-    db.execute(role)
+    server = db.query(models.Server).filter_by(id=role.server_id).first()
+    if server and server.role_order:
+        server.role_order = [r for r in server.role_order if r != role_id]
+    db.delete(role)
     db.commit()
     return {'status': "success"}
 
@@ -96,9 +104,17 @@ def reorder_roles(server_id: int, new_order: list[int]):
     role_ids = [role.id for role in roles]
     if set(new_order) != set(role_ids):
         return {'status': "error", 'message': "New order does not match existing roles"}
-    server.roles = new_order
+    server.role_order = new_order
     db.commit()
     return {'status': "success"}
+
+def get_role_order(server_id):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    role_order = db.query(models.Server).filter_by(id=server_id).first().role_order
+    if role_order == None:
+        return {'status': "error", 'message': "Server does not exist"}
+    return {'status': "success", 'role_order': role_order}
 
 def get_roles_in_server(server_id: int):
     db_gen = models.get_db()

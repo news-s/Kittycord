@@ -113,7 +113,7 @@ def test_manage_channels_permission(client, db):
 
 
 def test_manage_roles_permission(client, db):
-    perms = convert_to_permissions("0000100")
+    perms = convert_to_permissions("0010000")
     create_user("name1", "pass")
     user_id1 = verify_user("name1", "pass")
     create_user("name2", "pass")
@@ -260,7 +260,7 @@ def test_manage_roles_permission(client, db):
 
 
 def test_manage_server_permission(client, db):
-    perms = convert_to_permissions("0000010")
+    perms = convert_to_permissions("0100000")
     create_user("name1", "pass")
     user_id1 = verify_user("name1", "pass")
     create_user("name2", "pass")

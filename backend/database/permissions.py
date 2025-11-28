@@ -14,9 +14,9 @@ def convert_to_string(perms: dict):
     result = []
     for _, has_permission in perms.items():
         if has_permission:
-            result.insert(0, "1")
+            result.append("1")
         else:
-            result.insert(0, "0")
+            result.append("0")
         
     return "".join(result)
 

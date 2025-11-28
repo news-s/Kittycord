@@ -1,19 +1,18 @@
-from curses import use_env
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from auth_token import verify_token
-from utils import has_permission, is_member
+from utils import can_manage_role, can_manage_user, has_permission, is_member
 from database.permissions import convert_to_permissions
 from database.roles import add_role_to_user, change_role_name, create_role, delete_role, get_roles_in_server, get_server_id_by_role, reorder_roles, set_role_permissions, change_role_color, remove_role_from_user
-from database.servers import get_owner_id
 from database.permissions import permissions
+from routes.ws import broadcast
 
 ROLES_PERM = "Manage roles"
 
 router = APIRouter()
 
-# TODO implement role ordering and websocket messages
+# TODO implement role ordering
 
 class AddRole(BaseModel):
     token: str
@@ -23,7 +22,7 @@ class AddRole(BaseModel):
 
 
 @router.post("/add_role", status_code=201)
-def add_role(data: AddRole) -> int:
+async def add_role(data: AddRole) -> int:
     if data.role_color[0] != "#" or len(data.role_color) > 7:
         raise HTTPException(status_code=400, detail="Role color invalid")
 
@@ -48,7 +47,7 @@ class AddRoleToUser(BaseModel):
     user_id: int
 
 @router.put("/add_role", status_code=200)
-def add_role_to(data: AddRoleToUser) -> str:
+async def add_role_to(data: AddRoleToUser) -> str:
     user_id = verify_token(data.token)
 
     res = get_server_id_by_role(data.role_id)
@@ -63,11 +62,25 @@ def add_role_to(data: AddRoleToUser) -> str:
 
     if not has_permission(user_id, server_id, ROLES_PERM):
         raise HTTPException(status_code=403, detail=f"User is missing {ROLES_PERM} permission")
+    
+    if not can_manage_role(user_id, server_id, data.role_id):
+        raise HTTPException(status_code=403, detail="User's highest role is below target role")
+
+    if not can_manage_user(user_id, data.user_id, server_id):
+        raise HTTPException(status_code=403, detail="Target's hgihest role is above user's highest role")
+
 
     res = add_role_to_user(data.user_id, server_id, data.role_id)
 
     if res["status"] == "error":
         raise HTTPException(status_code=400, detail=res["message"])
+    
+    await broadcast.broadcast({
+        "class": ["user"],
+        "type": "add_role",
+        "user_id": data.user_id,
+        "role_id": data.role_id,
+    })
 
     return res["status"]
 
@@ -77,7 +90,7 @@ class RemoveRole(BaseModel):
     role_id: int
 
 @router.patch("/remove_role", status_code=200)
-def remove_role(data: RemoveRole) -> str:
+async def remove_role(data: RemoveRole) -> str:
     user_id = verify_token(data.token)
     res = get_server_id_by_role(data.role_id)
 
@@ -91,6 +104,10 @@ def remove_role(data: RemoveRole) -> str:
     
     if not has_permission(user_id, res["server_id"], ROLES_PERM):
         raise HTTPException(status_code=403, detail=f"User is missing {ROLES_PERM} permission")
+    
+    if not can_manage_role(user_id, server_id, data.role_id):
+        raise HTTPException(status_code=403, detail="Target role is above user's highest role")
+
 
     res = delete_role(data.role_id)
 
@@ -106,7 +123,7 @@ class RemoveRoleFromUser(BaseModel):
     user_id: int
 
 @router.put("/remove_role", status_code=200)
-def remove_role_from(data: RemoveRoleFromUser) -> str:
+async def remove_role_from(data: RemoveRoleFromUser) -> str:
     user_id = verify_token(data.token)
 
     res = get_server_id_by_role(data.role_id)
@@ -122,10 +139,24 @@ def remove_role_from(data: RemoveRoleFromUser) -> str:
     if not has_permission(user_id, server_id, ROLES_PERM):
         raise HTTPException(status_code=403, detail=f"User is missing {ROLES_PERM} permission")
 
+    if not can_manage_role(user_id, server_id, data.role_id):
+        raise HTTPException(status_code=403, detail="Target role is above user's highest role")
+
+    if not can_manage_user(user_id, data.user_id, server_id):
+        raise HTTPException(status_code=403, detail="Target's hgihest role is above user's highest role")
+
+
     res = remove_role_from_user(user_id, server_id, data.role_id)
 
     if res["status"] == "error":
         raise HTTPException(status_code=400, detail=res["message"])
+    
+    await broadcast.broadcast({
+        "class": ["user"],
+        "type": "remove_role",
+        "user_id": data.user_id,
+        "role_id": data.role_id
+    })
 
     return res["status"]
     
@@ -145,7 +176,7 @@ class EditRole(BaseModel):
     new_val: str
 
 @router.put("/edit_role/name", status_code=200)
-def edit_name(data: EditRole) -> str:
+async def edit_name(data: EditRole) -> str:
     user_id = verify_token(data.token)
     
     res = get_server_id_by_role(data.role_id)
@@ -159,6 +190,9 @@ def edit_name(data: EditRole) -> str:
     if not has_permission(user_id, res["server_id"], ROLES_PERM):
         raise HTTPException(status_code=403, detail=f"User is missing {ROLES_PERM} permission")
 
+    if not can_manage_role(user_id, res["server_id"], data.role_id):
+        raise HTTPException(status_code=403, detail="Target role is above user's highest role")
+
     res = change_role_name(data.role_id, data.new_val)
 
     if res["status"] == "error":
@@ -168,7 +202,7 @@ def edit_name(data: EditRole) -> str:
 
 
 @router.put("/edit_role/color", status_code=200)
-def edit_color(data: EditRole) -> str:
+async def edit_color(data: EditRole) -> str:
     if data.new_val[0] != "#" or len(data.new_val) > 7:
         raise HTTPException(status_code=400, detail="Role color invalid")
     
@@ -184,6 +218,9 @@ def edit_color(data: EditRole) -> str:
 
     if not has_permission(user_id, res["server_id"], ROLES_PERM):
         raise HTTPException(status_code=403, detail=f"User is missing {ROLES_PERM} permission")
+    
+    if not can_manage_role(user_id, res["server_id"], data.role_id):
+        raise HTTPException(status_code=403, detail="Target role is above user's highest role")
 
     res = change_role_color(data.role_id, data.new_val)
 
@@ -198,7 +235,7 @@ class EditRolePermissions(BaseModel):
     new_permissions: dict[str, bool]
 
 @router.put("/edit_role/permissions", status_code=200)
-def edit_permissions(data: EditRolePermissions) -> str:
+async def edit_permissions(data: EditRolePermissions) -> str:
     if list(data.new_permissions.keys()) != permissions[::-1]:
         raise HTTPException(status_code=400, detail="Permission dict invalid")
 
@@ -214,6 +251,9 @@ def edit_permissions(data: EditRolePermissions) -> str:
     
     if data.new_permissions["Admin"] and not has_permission(user_id, res["server_id"], "Admin"):
         raise HTTPException(status_code=403, detail=f"User is missing Admin permission")
+    
+    if not can_manage_role(user_id, res["server_id"], data.role_id):
+        raise HTTPException(status_code=403, detail="Target role is above user's highest role")
 
     res = set_role_permissions(data.role_id, data.new_permissions)
 
@@ -244,4 +284,3 @@ async def edit_role_oder(data: EditRoleOrder) -> str:
         raise HTTPException(status_code=400, detail="New order does not match existing roles")
     
     return res["status"]
-    

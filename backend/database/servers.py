@@ -121,6 +121,14 @@ def get_servers_of_user(user_id: int):
             } for rel in rels]
         }
 
+def get_server_name(server_id: int) -> dict:
+    db_gen = models.get_db()
+    db = next(db_gen)
+    srv = db.query(models.Server).filter_by(id=server_id).first().first()
+    if srv == None:
+        return {'status': "error", 'message': "server doesnt exists"}
+    return {'status': "success", 'name': srv.name, 'link': srv.link}
+
 if __name__ == "__main__":
     id = create_server(1, "test", "testlink")
     #join_server(1, 1)
