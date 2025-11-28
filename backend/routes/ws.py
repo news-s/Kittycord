@@ -180,6 +180,8 @@ class Socket:
         self.is_muted = is_muted
 
         if len(channels) == 0:
+            self.current_channel = None
+            self.current_server = int(msg["content"])
             await self.websocket.send_json({
                 "status": 200,
                 "type": "load_server",
@@ -207,7 +209,8 @@ class Socket:
             "channels": [{
                 "channel_id": channel["id"],
                 "channel_name": channel["name"],
-                "color": channel["color"]
+                "color": channel["color"],
+                "role_needed": channel["role_needed"],
                 } for channel in filter(lambda channel: is_user_owner or channel["role_needed"] in roles or channel["role_needed"] == None, channels)],
             "messages": messages,
             "is_muted": is_muted,

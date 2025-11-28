@@ -13,7 +13,7 @@ ROLES_PERM = "Manage roles"
 
 router = APIRouter()
 
-# TODO implement role ordering
+# TODO implement role ordering and websocket messages
 
 class AddRole(BaseModel):
     token: str

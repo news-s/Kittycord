@@ -1,3 +1,4 @@
+from database.channels import create_channel
 from database.login import create_user, verify_user
 from database.servers import create_server, join_server, get_servers_of_user
 from auth_token import create_access_token
@@ -68,6 +69,18 @@ def test_remove_server(client, db):
     })
 
     assert res.status_code == 200
+
+
+def test_get_members(client, db):
+    create_user("name", "pass")
+    user_id = verify_user("name", "pass")
+    server_id = create_server(user_id, "name", "link")["server_id"]
+
+    res = client.get(f"/get_members/{server_id}")
+    data = res.json()
+
+    assert data[0]["name"] == "name"
+    assert data[0]["roles"] == []
 
 
 def test_edit_server_name(client, db):

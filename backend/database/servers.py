@@ -53,6 +53,7 @@ def delete_server(server_id: int):
     db = next(db_gen)
     # Removing users relationship with server
     db.query(models.User_Server).filter_by(server_id=server_id).delete()
+    db.query(models.Channel).filter_by(server_id=server_id).delete()
     db.query(models.Server).filter_by(id=server_id).delete()
     db.commit()
     return {'status': "success"}
@@ -101,6 +102,7 @@ def get_users_in_server(server_id: int):
         return {'status': "error", 'message': "server doesnt exists"}
     return {'status': "success", 'users':
             [{
+                'name': db.query(models.User).filter_by(id=rel.user_id).first().display_name,
                 'user_id': rel.user_id,
                 'roles': rel.roles
             } for rel in rels]

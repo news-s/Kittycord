@@ -67,6 +67,14 @@ def get_friends(user_id: int):
         return {'status': "error", 'message': "user doesnt exists"}
     return {'status': "success", 'friends': user.friends}
 
+def is_friends(user_id1: int, user_id2: int):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    user = db.query(models.User).filter_by(id=user_id1).first()
+    if user.friends == None:
+        return False
+    return user_id2 in user.friends
+
 if __name__ == "__main__":
     invite_friend(1, 2)
     print(get_friend_requests(2))

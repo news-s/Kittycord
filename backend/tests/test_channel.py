@@ -14,7 +14,7 @@ def test_add_channel(client, db):
     res = client.post("/add_channel", json={
         "token": token,
         "server_id": server_id,
-        "channel_name": "name"
+        "channel_name": "name",
     })
 
     assert res.status_code == 201

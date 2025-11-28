@@ -8,7 +8,7 @@ def test_send_message(client, db):
     create_user("test", "pass")
     user_id = verify_user("test", "pass")
     res = create_server(user_id, "testname", "testlink")
-    channel_id = create_channel(res["server_id"], "testname")["channel_id"]
+    channel_id = create_channel(res["server_id"], "name")["channel_id"]
     token = create_access_token({"id": user_id})
 
 
@@ -33,7 +33,7 @@ def test_change_channel(client, db):
     create_user("test", "pass")
     user_id = verify_user("test", "pass")
     res = create_server(user_id, "testname", "testlink")
-    channel_id = create_channel(res["server_id"], "testname")["channel_id"]
+    channel_id = create_channel(res["server_id"], "name")["channel_id"]
     token = create_access_token({"id": user_id})
 
     with client.websocket_connect(f"/ws?token={token}") as ws:

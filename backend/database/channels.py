@@ -1,16 +1,10 @@
 from database import models
 from sqlalchemy import delete
 
-def create_channel(server_id, name, role_needed = None):
+def create_channel(server_id, name):
     db_gen = models.get_db()
     db = next(db_gen)
-    if role_needed == None:
-        channel = models.Channel(server_id=server_id, name=name)
-    else:
-        roles = db.query(models.Server).filter_by(server_id=server_id).first().roles
-        if role_needed not in roles:
-            return {'status': "error", 'message': "role_needed doesnt exists"}
-        channel = models.Channel(server_id=server_id, name=name, role_needed=role_needed)
+    channel = models.Channel(server_id=server_id, name=name)
     db.add(channel)
     db.commit()
     db.refresh(channel)

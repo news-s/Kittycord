@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 from auth_token import verify_token
 from utils import has_permission, is_member
-from database.servers import get_server_by_link, join_server, leave_server, create_server, delete_server, get_owner_id, set_invite_link, change_server_name
+from database.servers import get_server_by_link, get_users_in_server, join_server, leave_server, create_server, delete_server, get_owner_id, set_invite_link, change_server_name
 from database.admin_tool import is_user_banned
 from routes.ws import broadcast
 
@@ -120,6 +120,16 @@ async def remove_server(data: RemoveServer) -> str:
     })
     
     return res["status"]
+
+@router.get("/get_members/{server_id}")
+async def get_members(server_id: int):
+    res = get_users_in_server(server_id)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=404, detail="Server not found")
+
+    return res["users"]
+
 
 
 class EditServer(BaseModel):

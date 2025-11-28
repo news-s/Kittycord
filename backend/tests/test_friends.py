@@ -1,5 +1,5 @@
 from auth_token import create_access_token
-from database.friends import get_friend_requests, invite_friend
+from database.friends import get_friend_requests, invite_friend, is_friends
 from database.login import create_user, verify_user
 from database.profile import get_user_data
 
@@ -43,13 +43,8 @@ def test_accept_friend_req(client, db):
 
     assert len(res["friend_requests"]) == 0
 
-    res = get_user_data(user_id1)
-
-    assert res["friends"] == [user_id2]
-
-    res = get_user_data(user_id2)
-
-    assert res["friends"] == [user_id1]
+    assert is_friends(user_id1, user_id2) == True
+    assert is_friends(user_id2, user_id1) == True
 
 
 def test_reject_friend_req(client, db):
@@ -70,13 +65,8 @@ def test_reject_friend_req(client, db):
     res = get_friend_requests(user_id2)
 
     assert len(res["friend_requests"]) == 0
-    res = get_user_data(user_id1)
-
-    assert res["friends"] == []
-
-    res = get_user_data(user_id2)
-
-    assert res["friends"] == []
+    assert is_friends(user_id1, user_id2) == False
+    assert is_friends(user_id2, user_id1) == False
 
 
 

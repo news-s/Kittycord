@@ -28,6 +28,7 @@ def test_manage_channels_permission(client, db):
         "token": token1,
         "server_id": server_id,
         "channel_name": "name1",
+        "channel_color": "#FF00E6",
     })
     assert res.status_code == 201
 
@@ -37,6 +38,7 @@ def test_manage_channels_permission(client, db):
         "token": token2,
         "server_id": server_id,
         "channel_name": "name2",
+        "channel_color": "#FF00E6",
     })
     assert res.status_code == 201
 
@@ -46,6 +48,7 @@ def test_manage_channels_permission(client, db):
         "token": token3,
         "server_id": server_id,
         "channel_name": "name3",
+        "channel_color": "#FF00E6",
     })
     assert res.status_code == 403
 
