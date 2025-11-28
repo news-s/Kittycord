@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from auth_token import verify_token
 from utils import has_permission, is_member
 from database.permissions import convert_to_permissions
-from database.roles import add_role_to_user, change_role_name, create_role, delete_role, get_server_id_by_role, reorder_roles, set_role_permissions, change_role_color, remove_role_from_user
+from database.roles import add_role_to_user, change_role_name, create_role, delete_role, get_roles_in_server, get_server_id_by_role, reorder_roles, set_role_permissions, change_role_color, remove_role_from_user
 from database.servers import get_owner_id
 from database.permissions import permissions
 
@@ -13,6 +13,7 @@ ROLES_PERM = "Manage roles"
 
 router = APIRouter()
 
+# TODO implement role ordering
 
 class AddRole(BaseModel):
     token: str
@@ -129,6 +130,15 @@ def remove_role_from(data: RemoveRoleFromUser) -> str:
     return res["status"]
     
 
+@router.get("/roles_in_server/{server_id}")
+async def roles_in_server(server_id: int):
+    res = get_roles_in_server(server_id)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=404, detail="Server not found")
+    
+    return res["roles"]
+
 class EditRole(BaseModel):
     token: str
     role_id: int
@@ -189,7 +199,7 @@ class EditRolePermissions(BaseModel):
 
 @router.put("/edit_role/permissions", status_code=200)
 def edit_permissions(data: EditRolePermissions) -> str:
-    if list(data.new_permissions.keys()) != permissions:
+    if list(data.new_permissions.keys()) != permissions[::-1]:
         raise HTTPException(status_code=400, detail="Permission dict invalid")
 
     user_id = verify_token(data.token)

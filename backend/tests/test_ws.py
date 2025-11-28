@@ -1,5 +1,3 @@
-import json
-
 from database.login import create_user, verify_user
 from database.servers import create_server
 from database.channels import create_channel

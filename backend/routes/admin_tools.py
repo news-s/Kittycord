@@ -162,7 +162,7 @@ async def unban(data: Unban) -> str:
     return res["status"]
 
 
-@router.post("/is_banned/{user_id}/{server_id}", status_code=200)
+@router.get("/is_banned/{user_id}/{server_id}", status_code=200)
 async def is_banned(user_id: int, server_id: int) -> str:
     res = is_user_banned(user_id, server_id)
 

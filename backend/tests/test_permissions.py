@@ -9,7 +9,6 @@ from auth_token import create_access_token
 
 def test_manage_channels_permission(client, db):
     perms = convert_to_permissions("0001000")
-    
     create_user("name1", "pass")
     user_id1 = verify_user("name1", "pass")
     create_user("name2", "pass")
@@ -61,21 +60,21 @@ def test_manage_channels_permission(client, db):
     res = client.put("/edit_channel/name", json={
         "token": token1,
         "channel_id": channel_id1,
-        "new_name": "name4",
+        "new_val": "name4",
     })
     assert res.status_code == 200
 
     res = client.put("/edit_channel/name", json={
         "token": token2,
         "channel_id": channel_id2,
-        "new_name": "name5",
+        "new_val": "name5",
     })
     assert res.status_code == 200
 
     res = client.put("/edit_channel/name", json={
         "token": token3,
         "channel_id": channel_id1,
-        "new_name": "name6",
+        "new_val": "name6",
     })
     assert res.status_code == 403
 
@@ -112,7 +111,6 @@ def test_manage_channels_permission(client, db):
 
 def test_manage_roles_permission(client, db):
     perms = convert_to_permissions("0000100")
-    
     create_user("name1", "pass")
     user_id1 = verify_user("name1", "pass")
     create_user("name2", "pass")
@@ -260,7 +258,6 @@ def test_manage_roles_permission(client, db):
 
 def test_manage_server_permission(client, db):
     perms = convert_to_permissions("0000010")
-    
     create_user("name1", "pass")
     user_id1 = verify_user("name1", "pass")
     create_user("name2", "pass")

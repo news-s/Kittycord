@@ -3,9 +3,11 @@ import json
 import datetime
 
 from auth_token import verify_token
+from database.servers import get_owner_id
+from database.roles import get_user_roles_in_server
 from database.admin_tool import is_user_muted
 from database.messages import store_channel_message, get_last_messsages_from_channel
-from database.channels import get_channels, get_server_id
+from database.channels import get_channels, get_role_needed, get_server_id
 from database.profile import get_user_data
 
 class Socket:
@@ -125,6 +127,14 @@ class Socket:
         if int(server_id) not in res["servers"]:
             await self.handle_error(403, "User is not member of the requested server")
             return
+        
+        roles = get_user_roles_in_server(self.user_id, server_id)["roles"]
+        is_user_owner = get_owner_id(server_id)["owner_id"] == self.user_id
+        role_needed = get_role_needed(channel_id)["role_needed"]
+
+        if is_user_owner and (role_needed not in roles and role_needed != None):
+            await self.handle_error(403, "User does not have the required role to view this channel")
+            return
     
         res = get_last_messsages_from_channel(50, channel_id)
 
@@ -163,6 +173,8 @@ class Socket:
             return
         
         channels = res["channels"]
+        roles = get_user_roles_in_server(self.user_id, msg["content"])["roles"]
+        is_user_owner = get_owner_id(int(msg["content"]))["owner_id"] == self.user_id
 
         is_muted = is_user_muted(self.user_id, msg["content"])["muted"]
         self.is_muted = is_muted
@@ -196,7 +208,7 @@ class Socket:
                 "channel_id": channel["id"],
                 "channel_name": channel["name"],
                 "color": channel["color"]
-                } for channel in channels],
+                } for channel in filter(lambda channel: is_user_owner or channel["role_needed"] in roles or channel["role_needed"] == None, channels)],
             "messages": messages,
             "is_muted": is_muted,
         })

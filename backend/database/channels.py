@@ -46,6 +46,14 @@ def get_channels(server_id):
             } for c in channels]
         }
 
+def get_role_needed(channel_id):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    channel = db.query(models.Channel).filter_by(id=channel_id).first()
+    if channel == None:
+        return {'status': "error", 'message': "channel doesnt exists"}
+    return {'status': "success", 'role_needed': channel.role_needed}
+
 def change_channel_name(channel_id, new_name):
     db_gen = models.get_db()
     db = next(db_gen)
@@ -63,8 +71,7 @@ def change_channel_role_needed(channel_id, new_role_needed):
     if channel == None:
         return {'status': "error", 'message': "channel doesnt exists"}
     server_id = channel.server_id
-    roles = db.query(models.Server).filter_by(id=server_id).first().roles
-    if new_role_needed not in roles:
+    if not any(int(role.id) == int(new_role_needed) for role in db.query(models.Role).filter_by(server_id=server_id).all()) and new_role_needed != None:
         return {'status': "error", 'message': "role_needed doesnt exists"}
     channel.role_needed = new_role_needed
     db.commit()

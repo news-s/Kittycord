@@ -11,6 +11,7 @@ SERVER_PERM = "Manage server"
 
 router = APIRouter()
 
+# TODO Server name
 
 class JoinServer(BaseModel):
     token: str

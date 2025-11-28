@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 from utils import has_permission, is_member
 from database.profile import get_user_data
-from database.channels import create_channel, get_server_id, delete_channel, change_channel_name
+from database.channels import change_channel_color, change_channel_role_needed, create_channel, get_server_id, delete_channel, change_channel_name
 
 from auth_token import verify_token
 from routes.ws import broadcast
@@ -79,10 +79,10 @@ async def remove_channel(data: RemoveChannel) -> str:
 class EditChannel(BaseModel):
     token: str
     channel_id: int
-    new_name: str
+    new_val: str
 
 @router.put("/edit_channel/name", status_code=200)
-async def edit_channel(data: EditChannel) -> str:
+async def edit_name(data: EditChannel) -> str:
     user_id = verify_token(data.token)
     res = get_server_id(data.channel_id)
 
@@ -97,7 +97,7 @@ async def edit_channel(data: EditChannel) -> str:
     if not has_permission(user_id, server_id, CHANNEL_PERM):
         raise HTTPException(status_code=403, detail=f"User does not have the {CHANNEL_PERM} permission")
     
-    res = change_channel_name(data.channel_id, data.new_name)
+    res = change_channel_name(data.channel_id, data.new_val)
 
     if res["status"] == "error":
         raise HTTPException(status_code=500, detail="Channel initally found but failed to rename")
@@ -107,7 +107,77 @@ async def edit_channel(data: EditChannel) -> str:
         "type": "edit_channel_name",
         "channel_id": data.channel_id,
         "server_id": server_id,
-        "new_content": data.new_name,
+        "new_content": data.new_val,
+    })
+
+    return res["status"]
+
+@router.put("/edit_channel/color", status_code=200)
+async def edit_color(data: EditChannel) -> str:
+    if data.new_val[0] != '#' or len(data.new_val) > 7:
+        raise HTTPException(status_code=400, detail="Channel color invalid")
+
+    user_id = verify_token(data.token)
+    res = get_server_id(data.channel_id)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    server_id = res["server_id"]
+    
+    if not is_member(user_id, server_id):
+        raise HTTPException(status_code=400, detail=f"User is not member of server")
+    
+    if not has_permission(user_id, server_id, CHANNEL_PERM):
+        raise HTTPException(status_code=403, detail=f"User does not have the {CHANNEL_PERM} permission")
+    
+    res = change_channel_color(data.channel_id, data.new_val)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=500, detail="Channel initally found but failed to rename")
+    
+    await broadcast.broadcast({
+        "class": ["server"],
+        "type": "edit_channel_color",
+        "channel_id": data.channel_id,
+        "server_id": server_id,
+        "new_content": data.new_val,
+    })
+
+    return res["status"]
+
+
+@router.put("/edit_channel/role_needed", status_code=200)
+async def edit_color(data: EditChannel) -> str:
+
+    user_id = verify_token(data.token)
+    res = get_server_id(data.channel_id)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    server_id = res["server_id"]
+    
+    if not is_member(user_id, server_id):
+        raise HTTPException(status_code=400, detail=f"User is not member of server")
+    
+    if not has_permission(user_id, server_id, CHANNEL_PERM):
+        raise HTTPException(status_code=403, detail=f"User does not have the {CHANNEL_PERM} permission")
+
+    if data.new_val == "None":
+        res = change_channel_role_needed(data.channel_id, None)
+    else:
+        res = change_channel_role_needed(data.channel_id, data.new_val)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=400, detail="Role doesn't exist")
+    
+    await broadcast.broadcast({
+        "class": ["server"],
+        "type": "edit_channel_role_needed",
+        "channel_id": data.channel_id,
+        "server_id": server_id,
+        "role_needed": data.new_val,
     })
 
     return res["status"]

@@ -39,7 +39,6 @@ def test_mute(client, db):
         assert res["status"] == 403
 
         ws.send_json({"type": "channel", "content": channel_id})
-        
         res = ws.receive_json()
 
         assert res["messages"] == []
