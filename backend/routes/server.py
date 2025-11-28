@@ -31,7 +31,6 @@ async def join(data: JoinServer) -> int:
     if res["status"] == "error":
         raise HTTPException(status_code=404, detail="User doesn't exist")
     
-    print(res["banned"])
 
     if res["banned"]:
         raise HTTPException(status_code=403, detail="User is banned")

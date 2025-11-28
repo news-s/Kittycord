@@ -1,4 +1,5 @@
 from database import models
+from database.friends import get_friends
 from sqlalchemy import update
 
 def get_user_data(user_id: int):
@@ -8,7 +9,9 @@ def get_user_data(user_id: int):
     if usr == None:
         return {'status': "error", 'message': "Couldnt find user"}
     servers = db.query(models.User_Server.server_id).filter_by(user_id=user_id).all()
-    #TODO ma zwracać też zanjomych
+    friends = get_friends(user_id)["friends"]
+    if friends is None:
+        friends = []
     return {
         "status": "success",
         "name": usr.name,
@@ -17,6 +20,7 @@ def get_user_data(user_id: int):
         "badges": usr.badges,
         "creation_date": usr.account_creation_date,
         "servers": [server[0] for server in servers],
+        "friends": friends,
     }
 
 def change_display_name(user_id: int, new_name: str):

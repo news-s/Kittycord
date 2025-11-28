@@ -208,7 +208,6 @@ class Broadcaster:
         self.connections = []
 
     async def broadcast(self, message):
-        # print(message)
         for socket in self.connections:
             await socket.send(message)
 

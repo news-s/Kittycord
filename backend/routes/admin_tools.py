@@ -23,7 +23,7 @@ class Mute(BaseModel):
     muted_till: int
 
 
-@router.post("/mute")
+@router.post("/mute", status_code=200)
 async def mute(data: Mute) -> str:
     user_id = verify_token(data.token)
     
@@ -57,7 +57,7 @@ class Unmute(BaseModel):
     user_id: int
     server_id: int
 
-@router.post("/unmute")
+@router.post("/unmute", status_code=200)
 async def unmute(data: Unmute) -> str:
     user_id = verify_token(data.token)
 
@@ -89,7 +89,7 @@ class IsMutedResponse(BaseModel):
     is_muted: bool
     message: str
 
-@router.get("/is_muted/{user_id}/{server_id}]")
+@router.get("/is_muted/{user_id}/{server_id}]", status_code=200)
 async def is_muted(user_id: int, server_id: int) -> IsMutedResponse:
     res = is_user_muted(user_id, server_id)
 
@@ -108,7 +108,7 @@ class Ban(BaseModel):
     server_id: int
     reason: str
 
-@router.post("/ban")
+@router.post("/ban", status_code=200)
 async def ban(data: Ban) -> str:
     user_id = verify_token(data.token)
 
@@ -141,7 +141,7 @@ class Unban(BaseModel):
     user_id: int
     server_id: int
 
-@router.post("/unban")
+@router.post("/unban", status_code=200)
 async def unban(data: Unban) -> str:
     user_id = verify_token(data.token)
 
@@ -162,7 +162,7 @@ async def unban(data: Unban) -> str:
     return res["status"]
 
 
-@router.post("/is_banned/{user_id}/{server_id}")
+@router.post("/is_banned/{user_id}/{server_id}", status_code=200)
 async def is_banned(user_id: int, server_id: int) -> str:
     res = is_user_banned(user_id, server_id)
 
@@ -178,7 +178,7 @@ class Kick(BaseModel):
     user_id: int
     server_id: int
 
-@router.post("/kick")
+@router.post("/kick", status_code=200)
 async def kick(data: Kick):
     user_id = verify_token(data.token)
 

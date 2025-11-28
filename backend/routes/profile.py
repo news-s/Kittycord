@@ -13,6 +13,7 @@ class ProfileResponse(BaseModel):
     display_name: str
     note: str
     servers: list[int]
+    friends: list[str]
 
 
 @router.get("/profile/{user_id}", status_code=200)
@@ -22,7 +23,10 @@ async def profile(user_id) -> ProfileResponse:
     if user_data["status"] == "error":
         raise HTTPException(status_code=404, detail="User not found")
     
-    return ProfileResponse(user_id=user_id, name=user_data["name"], display_name=user_data["display_name"], note=user_data["note"], servers=user_data["servers"])
+    return ProfileResponse(
+        user_id=user_id, name=user_data["name"], display_name=user_data["display_name"],
+        note=user_data["note"], servers=user_data["servers"], friends=user_data["friends"]
+    )
 
 
 class EditProfile(BaseModel):
