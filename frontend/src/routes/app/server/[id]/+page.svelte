@@ -4,8 +4,28 @@
     import { page } from "$app/stores";
 	import Chat from "$lib/Chat.svelte";
 
-    let channels = $state([]);
-    let messages = $state([]);
+        let channels = $state([
+        // {
+        //     channel_id: 1,
+        //     channel_name: "general"
+        // },
+        // {
+        //     channel_id: 2,
+        //     channel_name: "random"
+        // },
+        // {
+        //     channel_id: 3,
+        //     channel_name: "memes"
+        // }
+    ]);
+    let messages = $state([
+        // {
+        //     message_id: 1,
+        //     author_id: 123,
+        //     content: "Witaj! 😊",
+        //     date: "12:34 PM"
+        // }
+    ]);
     let open = $state(false);
     let server_id = null;
 
@@ -58,32 +78,32 @@
 
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms)); 
 
-    onMount(async () => {
-        let token = localStorage.getItem('token');
-        if (token === undefined) window.location.href = '/login';
+    // onMount(async () => {
+    //     let token = localStorage.getItem('token');
+    //     if (token === undefined) window.location.href = '/login';
 
-        let connected = false;
-        let tries = 0;
-        while(!connected) {
-            if($socket?.readyState === WebSocket.OPEN)connected = true;
-            tries += 1;
-            if(tries > 3) {
-                window.location.pathname = "/login"
-                return;
-            };
-            console.warn("Not connected to the web socket. Retrying in 1 second...");
+    //     let connected = false;
+    //     let tries = 0;
+    //     while(!connected) {
+    //         if($socket?.readyState === WebSocket.OPEN)connected = true;
+    //         tries += 1;
+    //         if(tries > 3) {
+    //             window.location.pathname = "/login"
+    //             return;
+    //         };
+    //         console.warn("Not connected to the web socket. Retrying in 1 second...");
 
-            await sleep(1000)
-        }
+    //         await sleep(1000)
+    //     }
 
-        $socket.addEventListener('message', message);
+    //     $socket.addEventListener('message', message);
 
-        $socket.send(JSON.stringify({
-            type: "server",
-            content: server_id
-        }));
+    //     $socket.send(JSON.stringify({
+    //         type: "server",
+    //         content: server_id
+    //     }));
 
-    });
+    // });
 
     onDestroy(() => {
         $socket?.removeEventListener('message', message);
@@ -240,24 +260,28 @@
 
             <div class="mt-1 space-y-0.5">
                 {#each channels as channel}
-                    <button 
-                        onclick={() => SwitchChannel(channel.channel_id)} 
-                        class="w-full flex items-center gap-2 px-2 py-1.5 rounded text-gray-700 hover:bg-pink-100/60 hover:text-gray-900 group"
-                    >
-                        <span class="text-purple-500 group-hover:text-purple-600">#</span>
-                        <span class="text-sm font-medium">{channel.channel_name}</span>
-                    </button>
-
-                    <button 
-                        class="edit-channel" 
-                        onclick={ () => {
-                            editing_channel.state = !editing_channel.state;
-                            editing_channel.id = channel.channel_id;
-                            editing_channel.name = channel.channel_name;
-                        }}
-                    >
-                    ...
-                    </button>
+                    <div class="flex items-center gap-1 w-full group/item">
+                        <button 
+                            onclick={() => SwitchChannel(channel.channel_id)} 
+                            class="flex-1 flex items-center gap-2 px-2 py-1.5 rounded text-gray-700 hover:bg-pink-100/60 hover:text-gray-900"
+                        >
+                            <span class="text-purple-500 group-hover/item:text-purple-600">#</span>
+                            <span class="text-sm font-medium">{channel.channel_name}</span>
+                        </button>
+                        <button 
+                            onclick={ () => {
+                                editing_channel.state = !editing_channel.state;
+                                editing_channel.id = channel.channel_id;
+                                editing_channel.name = channel.channel_name;
+                            }}
+                            class="p-1.5 opacity-0 group-hover/item:opacity-100 hover:bg-pink-100/60 rounded transition-opacity"
+                            aria-label="Edit channel"
+                        >
+                            <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
                 {/each}
             </div>
         </div>
@@ -273,69 +297,46 @@
 </div>
 
 {#if open}
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-        <div class="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl p-8 w-96 shadow-2xl border border-pink-200/50">
-            <h2 class="text-2xl font-semibold text-purple-900 mb-6">Create Channel</h2>
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50" onclick={() => open = false} onkeydown={(e) => e.key === 'Escape' && (open = false)} role="button" tabindex="0">
+        <div class="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl p-8 shadow-2xl border border-pink-200/50 flex flex-col items-center" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="dialog" tabindex="-1" style="width: 440px;">
+            <h2 class="text-2xl font-semibold text-purple-900 mb-6 text-center w-full">Create Channel</h2>
             <input 
                 type="text" 
                 placeholder="Channel Name" 
                 id="channel-name"
-                class="w-full px-4 py-3 rounded-xl bg-white/80 border border-pink-200 text-gray-800 placeholder-gray-400 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
+                class="px-4 py-3 rounded-xl bg-white/80 border border-pink-200 text-gray-800 placeholder-gray-400 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-300" 
+                style="width: 376px;"
             />
-            <div class="flex gap-3">
-                <button 
-                    onclick={() => open = false}
-                    class="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-colors"
-                >Cancel</button>
-                <button 
-                    onclick={HandleCreatingChannel}
-                    class="flex-1 px-4 py-2.5 rounded-xl text-white font-medium transition-colors shadow-lg"
-                    style="background: linear-gradient(135deg, #E9D5FF 0%, #BFDBFE 70.71%);"
-                >
-                    <span class="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-semibold">Create</span>
-                </button>
-                <button onclick={() => open = false}>Cancel</button>
-            </div>
+            <button 
+                onclick={HandleCreatingChannel}
+                class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold"
+                style="width: 376px;"
+            >Create</button>
         </div>
     </div>
 {/if}
 
 {#if editing_channel.state}
-    <div class="modal">
-        <h2>Edit Channel</h2>
-        <input type="text" placeholder="Channel Name" id="channel-name" bind:value={editing_channel.name}/>
-        <button onclick={() => EditChannel()}>Edit</button>
-        <button onclick={() => DeleteChannel()}>Delete</button>
-        <button onclick={() => editing_channel.state = false}>Cancel</button>
+    <div class="fixed top-0 left-0 w-screen h-screen bg-black/30 backdrop-blur-sm flex items-center justify-center z-50" onclick={() => editing_channel.state = false} onkeydown={(e) => e.key === 'Escape' && (editing_channel.state = false)} role="button" tabindex="0">
+        <div class="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl p-8 shadow-2xl border border-pink-200/50 flex flex-col items-center" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="dialog" tabindex="-1" style="width: 440px;">
+            <h2 class="text-2xl font-semibold text-purple-900 mb-6 text-center w-full">Edit Channel</h2>
+            <input 
+                type="text" 
+                placeholder="Channel Name" 
+                bind:value={editing_channel.name}
+                class="px-4 py-3 rounded-xl bg-white/80 border border-pink-200 text-gray-800 placeholder-gray-400 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-300" 
+                style="width: 376px;"
+            />
+            <div class="flex gap-3" style="width: 376px;">
+                <button 
+                    onclick={() => EditChannel()}
+                    class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold"
+                >Save</button>
+                <button 
+                    onclick={() => DeleteChannel()}
+                    class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold"
+                >Delete</button>
+            </div>
+        </div>
     </div>
 {/if}
-
-<style>
-    .modal {
-        width: 200px;
-        height: 200px;
-
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-
-        background-color: #fff;
-
-        padding: 20px;
-
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-
-        border-radius: 8px;
-
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-evenly;
-    }
-
-    #channel-name {
-        width: 80%;
-        text-align: center;
-    }
-</style>
