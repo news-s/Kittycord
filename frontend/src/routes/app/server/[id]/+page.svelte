@@ -23,13 +23,21 @@
     function message(event){
         const data = JSON.parse(event.data);
         
-        if(data.channels) channels = data.channels;
-        if(data.messages) messages = data.messages;
-
-        if(data.type === "new_message")  messages.push(data);
+        if(data.type === "load_server") {
+            channels = data.channels;
+            messages = data.messages;
+        }
+        else if(data.type === "load_channel") {
+            messages = data.messages;
+        }
+        else if(data.type === "new_message")  messages.push(data);
         else if(data.type === "add_channel") channels.push(data);
         else if(data.type === "remove_message") messages = messages.filter(message => message.message_id !== data.message_id);
-        else if(data.type === "remove_channel") channels = channels.filter(channel => channel.channel_id !== data.channel_id);
+        else if(data.type === "remove_channel") {
+            channels = channels.filter(channel => channel.channel_id !== data.channel_id);
+            
+            SwitchChannel(channels[0].channel_id);
+        }
         else if(data.type === "edit_message") {
             for (const message of messages) {
                 if(message.id !== data.message_id)continue;

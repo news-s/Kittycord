@@ -1,6 +1,6 @@
 <script>
     import { onMount } from "svelte";
-    import { socket, profile } from "./stores.js";
+    import { socket, profile, load_server_bar } from "./stores.js";
     import ServersNavbar from "$lib/ServersNavbar.svelte";
 	import Profile from "$lib/Profile.svelte";
 
@@ -56,7 +56,9 @@
 </script>
 
 <div class="flex w-screen max-w-screen h-screen overflow-hidden relative">
-    <ServersNavbar servers={$profile.servers} />
-    <Profile />
+    {#if $load_server_bar}
+        <ServersNavbar />
+        <Profile />
+    {/if}
     {@render children()}
 </div>

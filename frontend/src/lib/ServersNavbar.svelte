@@ -1,7 +1,9 @@
 <script>
-    const { servers } = $props();
+	import { onDestroy } from "svelte";
+	import { profile } from "../routes/app/stores";
 
     let open = $state(false);
+    let servers = $state([]);
 
     async function CreateServer(token, server_name) {
         try {
@@ -26,6 +28,21 @@
             console.error("Fetch error:", err);
         }
     }
+
+    async function HandleCreatingServer() {
+        open = false;
+        
+        const token = localStorage.getItem('token');
+        const input = document.getElementById('server-name');
+        const server_name = input.value.trim();
+
+        if(!server_name)return;
+
+        const data = await CreateServer(token, server_name);
+        profile.update(object => ({...object, servers: [...object.servers, data.server_id]}));
+    }
+
+    // onDestroy(subscription);
 </script>
 
 <nav class="flex flex-col items-center gap-2 py-3 h-screen w-[72px] bg-white/60 border-r border-[#fbcfe8]/50">
@@ -36,7 +53,7 @@
     </a>
     <div class="w-8 h-[2px] bg-pink-300/50 rounded-full"></div>
 
-    {#each servers as id}
+    {#each $profile?.servers as id}
         <a href={"/app/server/" + id} title={id} class="flex items-center justify-center w-12 h-12 rounded-full hover:rounded-xl transition-all duration-200" style="background: linear-gradient(135deg, #f9a8d4 0%, #ec4899 100%);">
             <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
@@ -67,14 +84,7 @@
                     class="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-colors"
                 >Cancel</button>
                 <button 
-                    onclick={async () => {
-                        const token = localStorage.getItem('token');
-                        const input = document.getElementById('server-name');
-                        const server_name = input.value;
-                        const id = await CreateServer(token, server_name);
-                        servers.push(id);
-                        open = false;
-                    }}
+                    onclick={HandleCreatingServer}
                     class="flex-1 px-4 py-2.5 rounded-xl text-white font-medium transition-colors shadow-lg"
                     style="background: linear-gradient(135deg, #E9D5FF 0%, #BFDBFE 70.71%);"
                 >
