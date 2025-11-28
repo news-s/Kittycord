@@ -32,7 +32,6 @@ def add_role(data: AddRole) -> int:
         raise HTTPException(status_code=400, detail=f"User is not member of server")
 
     if not has_permission(user_id, data.server_id, ROLES_PERM):
-        print("test")
         raise HTTPException(status_code=403, detail=f"User is missing {ROLES_PERM} permission")
 
     res = create_role(data.server_id, data.role_name, convert_to_permissions("0000000"), data.role_color)

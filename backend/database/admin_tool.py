@@ -1,4 +1,4 @@
-import models, servers
+from database import models, servers
 from datetime import datetime
 
 ### Mute

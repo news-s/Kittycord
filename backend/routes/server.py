@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
 from auth_token import verify_token
 from utils import has_permission, is_member
 from database.servers import get_server_by_link, join_server, leave_server, create_server, delete_server, get_owner_id, set_invite_link, change_server_name
+from database.admin_tool import is_user_banned
 from routes.ws import broadcast
 
 SERVER_PERM = "Manage server"
@@ -24,6 +25,18 @@ async def join(data: JoinServer) -> int:
         raise HTTPException(status_code=404, detail="Server not found")
     
     server_id = res["id"]
+    
+    res = is_user_banned(user_id, server_id)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=404, detail="User doesn't exist")
+    
+    print(res["banned"])
+
+    if res["banned"]:
+        raise HTTPException(status_code=403, detail="User is banned")
+    
+    
     res = join_server(user_id, server_id)
 
     if res["status"] == "error":
@@ -101,6 +114,7 @@ async def remove_server(data: RemoveServer) -> str:
     res = delete_server(data.server_id)
 
     await broadcast.broadcast({
+        "class": ["server", "reset_ids"],
         "type": "remove_server",
         "server_id": data.server_id
     })
@@ -132,6 +146,7 @@ async def edit_server_name(data: EditServer) -> str:
         return HTTPException(status_code=500, detail="Message changed but failed to broadcast")
     
     await broadcast.broadcast({
+        "class": ["server"],
         "type": "edit_server_name",
         "server_id": data.server_id,
         "new_name": data.new_val,

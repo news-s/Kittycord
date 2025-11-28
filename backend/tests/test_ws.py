@@ -22,9 +22,10 @@ def test_send_message(client, db):
 
         ws.send_json({"type": "message", "content": "test"})
         ws.receive_json()
+        ws.receive_json()
 
         ws.send_json({"type": "channel", "content": channel_id})
-
+        
         res = ws.receive_json()
 
         assert res["messages"][0]["content"] == "test"
@@ -63,5 +64,5 @@ def test_change_server(client, db):
 
         assert res["status"] == 200
         assert len(res["channels"]) == 1
-        assert res["channels"][0]["name"] == "name"
+        assert res["channels"][0]["channel_name"] == "name"
         assert res["messages"] == []

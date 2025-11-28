@@ -103,7 +103,7 @@ async def edit_channel(data: EditChannel) -> str:
         raise HTTPException(status_code=500, detail="Channel initally found but failed to rename")
     
     await broadcast.broadcast({
-        "class": ["channel"],
+        "class": ["server"],
         "type": "edit_channel_name",
         "channel_id": data.channel_id,
         "server_id": server_id,

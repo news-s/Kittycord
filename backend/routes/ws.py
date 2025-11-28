@@ -3,6 +3,7 @@ import json
 import datetime
 
 from auth_token import verify_token
+from database.admin_tool import is_user_muted
 from database.messages import store_channel_message, get_last_messsages_from_channel
 from database.channels import get_channels, get_server_id
 from database.profile import get_user_data
@@ -12,29 +13,31 @@ class Socket:
     user_id: int
     current_channel: int
     current_server: int
+    is_muted: bool
 
     def __init__(self, websocket: WebSocket, user_id: int):
         self.websocket = websocket
         self.user_id = user_id
         self.current_channel = None
         self.current_server = None
+        self.is_muted = False
 
     async def send(self, message):
-        classes = message["class"]
+        classes = message["class"].copy()
         message["class"] = None
 
-        should_send = False
         
         for classifier in classes:
+            should_send = False
             match classifier:
                 case "user":
                     should_send = message["user_id"] == self.user_id
 
                 case "channel":
-                    should_send =  message["channel_id"] == self.current_channel
+                    should_send = message["channel_id"] == self.current_channel
                     
                 case "server":
-                    should_send =  message["server_id"] == self.current_server
+                    should_send = message["server_id"] == self.current_server
 
                 case "reset_ids":
                     if message["type"] == "remove_channel" and message["channel_id"] == self.current_channel:
@@ -43,26 +46,36 @@ class Socket:
                     if message["type"] == "remove_server" and message["server_id"] == self.current_server:
                         self.current_channel = None
                         self.current_server = None
+
+                case "mute":
+                    if self.user_id == message["user_id"] and self.current_server == message["server_id"]:
+                        self.is_muted = True
+
+                case "unmute":
+                    if self.user_id == message["user_id"] and self.current_server == message["server_id"]:
+                        self.is_muted = False
                 
                 case _:
                     pass
 
             if should_send:
                 _ = await self.websocket.send_json(message)
-                print(message)
             
         return
             
 
     async def handle_error(self, status_code: int, detail: str):
-        response = {
+        await self.websocket.send_json({
                 "status": status_code,
                 "detail": detail
-            }
-        await self.websocket.send_json(response)
+            })
         return
 
     async def handle_message(self, msg: dict[str, str]):
+        if self.is_muted:
+            await self.handle_error(403, "User is muted")
+            return
+
         if self.current_channel == None:
             await self.handle_error(400, "Channel not yet selected")
             return
@@ -74,7 +87,7 @@ class Socket:
 
         id = store_channel_message(self.user_id, self.current_channel, msg["content"], None)["message_id"]
 
-        message = {
+        await broadcast.broadcast({
             "class": ["channel"],
             "type": "new_message",
             "author_id": self.user_id,
@@ -82,17 +95,17 @@ class Socket:
             "date": str(datetime.datetime.now()),
             "content": msg["content"],
             "message_id": id
-        }
-        await broadcast.broadcast(message)
+        })
 
-
-        message["status"] = 201
-        await self.websocket.send_json(message)
+        await self.websocket.send_json({
+            "status": 201,
+            "message": "success"
+        })
 
     async def handle_channel(self, msg: dict[str, str]):
         try:
             channel_id = int(msg["content"])
-        except ValueError:
+        except Exception:
             await self.handle_error(400, "Channel ID is not a number")
             return
         
@@ -119,14 +132,18 @@ class Socket:
             await self.handle_error(500, "Channel initially found but failed to load messages")
             return
         
+        is_muted = is_user_muted(self.user_id, server_id)["muted"]
+        
         self.current_channel = channel_id
         self.current_server = server_id
+        self.is_muted = is_muted
 
-        response = {
+        await self.websocket.send_json({
             "status": 200,
-            "messages": res["messages"]
-        }
-        await self.websocket.send_json(response)
+            "type": "load_channel",
+            "messages": res["messages"],
+            "is_muted": is_muted,
+        })
 
     async def handle_server(self, msg: dict[str, str]):
         res = get_user_data(self.user_id)
@@ -147,13 +164,17 @@ class Socket:
         
         channels = res["channels"]
 
+        is_muted = is_user_muted(self.user_id, msg["content"])["muted"]
+        self.is_muted = is_muted
+
         if len(channels) == 0:
-            response = {
+            await self.websocket.send_json({
                 "status": 200,
+                "type": "load_server",
                 "channels": [],
-                "messages": []
-            }
-            await self.websocket.send_json(response)
+                "messages": [],
+                "is_muted": is_muted,
+            })
             return
 
         res = get_last_messsages_from_channel(50, channels[0]["id"])
@@ -168,16 +189,17 @@ class Socket:
         
         messages = res["messages"]
         
-        response = {
+        await self.websocket.send_json({
             "status": 200,
+            "type": "load_server",
             "channels": [{
-                "id": channel["id"],
-                "name": channel["name"],
+                "channel_id": channel["id"],
+                "channel_name": channel["name"],
                 "color": channel["color"]
                 } for channel in channels],
-            "messages": messages
-        }
-        await self.websocket.send_json(response)
+            "messages": messages,
+            "is_muted": is_muted,
+        })
 
 class Broadcaster:
     connections: list[Socket]
@@ -186,11 +208,9 @@ class Broadcaster:
         self.connections = []
 
     async def broadcast(self, message):
+        # print(message)
         for socket in self.connections:
-            # try:
-                await socket.send(message)
-            # except Exception:
-            #     self.connections.remove(socket)
+            await socket.send(message)
 
 
 router = APIRouter()
@@ -213,11 +233,10 @@ async def ws(websocket: WebSocket):
 
     socket = Socket(websocket, int(user_id))
     broadcast.connections.append(socket)
-    res = {
+    await websocket.send_json({
         "status": 200,
         "user_id": int(user_id)
-    }
-    await websocket.send_json(res)
+    })
     
     try:
         while True:
@@ -241,4 +260,4 @@ async def ws(websocket: WebSocket):
                     socket.handle_error(400, "Message type is invalid")
                 
     except WebSocketDisconnect:
-        pass
+        broadcast.connections.remove(socket)
