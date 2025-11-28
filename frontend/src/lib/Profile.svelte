@@ -2,7 +2,7 @@
     import { profile } from "../routes/app/stores";
 </script>
 
-<div class="h-14 px-2 bg-transparent border-t border-[#E5E7EB]/0 flex items-center justify-between">
+<div class="h-14 px-2 bg-[#f7f3f9] border-t border-pink-200/50 flex items-center justify-between absolute bottom-0 left-[72px] w-60 z-10">
     <div class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-full border-0 border-[#E5E7EB] bg-black"></div>
         <div class="flex flex-col">
