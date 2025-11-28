@@ -55,11 +55,21 @@
             }
         }
         else if(data.type === "edit_channel_color") {
-            
-        }
-        else if(data.type === "edit_channel_role_needed") [
+            for (const channel of channels) {
+                if(channel.channel_id !== data.channel_id)continue;
 
-        ]
+                channel.color = data.new_content;
+                break;
+            }
+        }
+        else if(data.type === "edit_channel_role_needed") {
+            for (const channel of channels) {
+                if(channel.channel_id !== data.channel_id)continue;
+
+                channel.role = data.new_content;
+                break;
+            }
+        }
     }
 
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms)); 
@@ -324,7 +334,7 @@
                             onclick={() => SwitchChannel(channel.channel_id)} 
                             class="flex-1 flex items-center gap-2 px-2 py-1.5 rounded text-gray-700 hover:bg-pink-100/60 hover:text-gray-900"
                         >
-                            <span class="text-purple-500 group-hover/item:text-purple-600">#</span>
+                            <span style="color: {channel.color || '#a855f7'}" class="group-hover/item:brightness-110">#</span>
                             <span class="text-sm font-medium">{channel.channel_name}</span>
                         </button>
                         <button 

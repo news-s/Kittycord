@@ -102,13 +102,16 @@
         window.location.href = "/app/main";
     }
 
+    async function () {
+        
+    }
+
 </script>
 <div class="options-wrapper">
     <form>
         <input type="text" bind:value={updated_server_name} />
         <input type="text" bind:value={updated_server_link} />
         <input type="submit" onclick={UpdateServer} value="Update"/>
-
     </form>
     
     <div>
