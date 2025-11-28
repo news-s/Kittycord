@@ -39,7 +39,8 @@
         if(!server_name)return;
 
         const data = await CreateServer(token, server_name);
-        profile.update(object => ({...object, servers: [...object.servers, data.server_id]}));
+        if($profile === null)return;
+        profile.update(object => ({...object, servers: [...object.servers, data?.server_id]}));
     }
 
     // onDestroy(subscription);

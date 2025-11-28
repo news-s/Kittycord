@@ -4,28 +4,8 @@
     import { page } from "$app/stores";
 	import Chat from "$lib/Chat.svelte";
 
-        let channels = $state([
-        // {
-        //     channel_id: 1,
-        //     channel_name: "general"
-        // },
-        // {
-        //     channel_id: 2,
-        //     channel_name: "random"
-        // },
-        // {
-        //     channel_id: 3,
-        //     channel_name: "memes"
-        // }
-    ]);
-    let messages = $state([
-        // {
-        //     message_id: 1,
-        //     author_id: 123,
-        //     content: "Witaj! 😊",
-        //     date: "12:34 PM"
-        // }
-    ]);
+    let channels = $state(null);
+    let messages = $state(null);
     let open = $state(false);
     let server_id = null;
 
@@ -66,7 +46,7 @@
                 break;
             }
         }
-        else if(data.type == "edit_channel_name") {
+        else if(data.type === "edit_channel_name") {
             for (const channel of channels) {
                 if(channel.channel_id !== data.channel_id)continue;
 
@@ -74,36 +54,41 @@
                 break;
             }
         }
+        else if(data.type === "edit_channel_color") {
+            
+        }
+        else if(data.type === "edit_channel_role_needed") [
+
+        ]
     }
 
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms)); 
 
-    // onMount(async () => {
-    //     let token = localStorage.getItem('token');
-    //     if (token === undefined) window.location.href = '/login';
+    onMount(async () => {
+        let token = localStorage.getItem('token');
+        if (token === undefined) window.location.href = '/login';
 
-    //     let connected = false;
-    //     let tries = 0;
-    //     while(!connected) {
-    //         if($socket?.readyState === WebSocket.OPEN)connected = true;
-    //         tries += 1;
-    //         if(tries > 3) {
-    //             window.location.pathname = "/login"
-    //             return;
-    //         };
-    //         console.warn("Not connected to the web socket. Retrying in 1 second...");
+        let connected = false;
+        let tries = 0;
+        while(!connected) {
+            if($socket?.readyState === WebSocket.OPEN)connected = true;
+            tries += 1;
+            if(tries > 3) {
+                window.location.pathname = "/login"
+                return;
+            };
+            console.warn("Not connected to the web socket. Retrying in 1 second...");
 
-    //         await sleep(1000)
-    //     }
+            await sleep(1000)
+        }
 
-    //     $socket.addEventListener('message', message);
+        $socket.addEventListener('message', message);
 
-    //     $socket.send(JSON.stringify({
-    //         type: "server",
-    //         content: server_id
-    //     }));
-
-    // });
+        $socket.send(JSON.stringify({
+            type: "server",
+            content: server_id
+        }));
+    });
 
     onDestroy(() => {
         $socket?.removeEventListener('message', message);
@@ -156,9 +141,9 @@
         open = false;
     }
 
-    let editing_channel = $state({state: false, id: null, name: null});
+    let editing_channel = $state({state: false, id: null, name: null, color: null, role: null});
 
-    async function EditChannel() {
+    async function EditChannelName() {
         editing_channel.state = false;
         const new_name = editing_channel.name.trim();
         editing_channel.name = "";
@@ -176,7 +161,7 @@
                 body: JSON.stringify({ 
                     token: token,
                     channel_id: editing_channel.id,
-                    new_name: new_name
+                    new_val: new_name
                 }),
             });
 
@@ -188,6 +173,80 @@
         } catch (err) {
             console.error("Fetch error:", err);
         }
+    }
+
+    function IsValidFullHex(color) {
+        return /^#[0-9A-Fa-f]{6}$/.test(color);
+    }
+
+    async function EditChannelColor() {
+        editing_channel.state = false;
+        const new_color = editing_channel.color.trim();
+        editing_channel.color = "";
+        
+        if(editing_channel.id === null || !new_color || !IsValidFullHex(new_color))return;
+        
+        const token = localStorage.getItem("token");
+
+        try {
+            const res = await fetch("http://localhost:8000/edit_channel/color", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ 
+                    token: token,
+                    channel_id: editing_channel.id,
+                    new_val: new_color
+                }),
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            return res.json();
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    async function EditChannelRole() {
+        editing_channel.state = false;
+        const new_role = editing_channel?.new_role.trim();
+        editing_channel.role = "";
+        
+        if(editing_channel.id === null || !new_role)return;
+        
+        const token = localStorage.getItem("token");
+
+        try {
+            const res = await fetch("http://localhost:8000/edit_channel/role_needed", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ 
+                    token: token,
+                    channel_id: editing_channel.id,
+                    new_val: new_role
+                }),
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            return res.json();
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    function HandleEditingChannel() {
+        EditChannelName();
+        EditChannelColor();
+        EditChannelRole();
     }
 
     async function DeleteChannel() {
@@ -273,6 +332,8 @@
                                 editing_channel.state = !editing_channel.state;
                                 editing_channel.id = channel.channel_id;
                                 editing_channel.name = channel.channel_name;
+                                editing_channel.color = channel.color;
+                                editing_channel.role = channel.channel_role;
                             }}
                             class="p-1.5 opacity-0 group-hover/item:opacity-100 hover:bg-pink-100/60 rounded transition-opacity"
                             aria-label="Edit channel"
@@ -327,9 +388,23 @@
                 class="px-4 py-3 rounded-xl bg-white/80 border border-pink-200 text-gray-800 placeholder-gray-400 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-300" 
                 style="width: 376px;"
             />
+            <input 
+                type="text" 
+                placeholder="Channel Color" 
+                bind:value={editing_channel.color}
+                class="px-4 py-3 rounded-xl bg-white/80 border border-pink-200 text-gray-800 placeholder-gray-400 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-300" 
+                style="width: 376px;"
+            />
+            <input 
+                type="text" 
+                placeholder="Channel Role" 
+                bind:value={editing_channel.role}
+                class="px-4 py-3 rounded-xl bg-white/80 border border-pink-200 text-gray-800 placeholder-gray-400 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-300" 
+                style="width: 376px;"
+            />
             <div class="flex gap-3" style="width: 376px;">
                 <button 
-                    onclick={() => EditChannel()}
+                    onclick={() => HandleEditingChannel()}
                     class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold"
                 >Save</button>
                 <button 
