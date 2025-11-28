@@ -17,7 +17,7 @@
         server_name = updated_server_name
 
         try {
-            const res = await fetch(`http://localhost:8000/edit_server/name`, {
+            const res = await fetch("http://localhost:8000/edit_server/name", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -47,7 +47,7 @@
         server_link = updated_server_link;
 
         try {
-            const res = await fetch(`http://localhost:8000/edit_server/link`, {
+            const res = await fetch("http://localhost:8000/edit_server/link", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -70,8 +70,6 @@
     }
 
     function UpdateServer() {
-        console.log("update");
-
         EditServerName();
         EditServerLink();
     }
@@ -80,7 +78,7 @@
         const token = localStorage.getItem("token");
 
         try {
-            const res = await fetch(`http://localhost:8000/remove_server`, {
+            const res = await fetch("http://localhost:8000/remove_server", {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
@@ -102,21 +100,13 @@
         window.location.href = "/app/main";
     }
 
-    async function () {
-        
-    }
-
 </script>
 <div class="options-wrapper">
     <form>
-        <input type="text" bind:value={updated_server_name} />
-        <input type="text" bind:value={updated_server_link} />
+        <input type="text" bind:value={updated_server_name} placeholder="Name" />
+        <input type="text" bind:value={updated_server_link} placeholder="Link"/>
         <input type="submit" onclick={UpdateServer} value="Update"/>
     </form>
-    
-    <div>
-        
-    </div>
 
     <button onclick={DeleteServer}>Delete</button>
 </div>

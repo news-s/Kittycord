@@ -46,27 +46,14 @@
                 break;
             }
         }
-        else if(data.type === "edit_channel_name") {
+        else {
             for (const channel of channels) {
                 if(channel.channel_id !== data.channel_id)continue;
 
-                channel.channel_name = data.new_content;
-                break;
-            }
-        }
-        else if(data.type === "edit_channel_color") {
-            for (const channel of channels) {
-                if(channel.channel_id !== data.channel_id)continue;
+                if(data.type === "edit_channel_name") channel.channel_name = data.new_content;
+                else if(data.type === "edit_channel_color")channel.color = data.new_content;
+                else if(data.type === "edit_channel_role_needed")channel.role = data.new_content;
 
-                channel.color = data.new_content;
-                break;
-            }
-        }
-        else if(data.type === "edit_channel_role_needed") {
-            for (const channel of channels) {
-                if(channel.channel_id !== data.channel_id)continue;
-
-                channel.role = data.new_content;
                 break;
             }
         }
