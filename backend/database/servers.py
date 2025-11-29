@@ -70,7 +70,10 @@ def get_owner_id(server_id: int):
 def get_server_by_link(invite_link: str):
     db_gen = models.get_db()
     db = next(db_gen)
-    server_id = db.query(models.Server).filter_by(invite_link=invite_link).first().id
+    try:
+        server_id = db.query(models.Server).filter_by(invite_link=invite_link).first().id
+    except AttributeError:
+        return {'status': "error", 'message': "Invalid invite link"}
     if server_id == None:
         return {'status': "error", 'message': "Invalid invite link"}
     return {'status': "success", 'id': server_id}
