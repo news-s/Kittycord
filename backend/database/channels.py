@@ -80,3 +80,11 @@ def change_channel_color(channel_id: int, new_color: str):
     channel.color = new_color
     db.commit()
     return {'status': "success"}
+
+def get_channel_name(channel_id):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    channel = db.query(models.Channel).filter_by(id=channel_id).first()
+    if channel == None:
+        return {'status': "error", 'message': "Channel does not exist"}
+    return {'status': "success", 'channel_name': channel.name}

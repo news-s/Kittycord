@@ -5,11 +5,11 @@ import datetime
 from auth_token import verify_token
 from database.friends import is_friends
 from database.dms import get_messsages_from_dm, store_direct_message
-from database.servers import get_owner_id
+from database.servers import get_owner_id, get_server_name
 from database.roles import get_user_roles_in_server
 from database.admin_tool import is_user_muted
 from database.messages import store_channel_message, get_last_messsages_from_channel
-from database.channels import get_channels, get_role_needed, get_server_id
+from database.channels import get_channel_name, get_channels, get_role_needed, get_server_id
 from database.profile import get_user_data
 
 class Socket:
@@ -167,7 +167,9 @@ class Socket:
             return
         
         is_muted = is_user_muted(self.user_id, server_id)["muted"]
-        
+        channel_name = get_channel_name(channel_id)
+
+
         self.current_dm = None
         self.current_channel = channel_id
         self.current_server = server_id
@@ -204,12 +206,15 @@ class Socket:
         is_muted = is_user_muted(self.user_id, msg["content"])["muted"]
         self.is_muted = is_muted
 
+        server_name = get_server_name(msg["content"])["name"]
+
         if len(channels) == 0:
             self.current_channel = None
             self.current_server = int(msg["content"])
             await self.websocket.send_json({
                 "status": 200,
                 "type": "load_server",
+                "server_name": server_name,
                 "channels": [],
                 "messages": [],
                 "is_muted": is_muted,
@@ -222,6 +227,7 @@ class Socket:
             await self.handle_error(500, "Channel found but failed to get messages")
             return
         
+        channels = filter(lambda channel: is_user_owner or channel["role_needed"] in roles or channel["role_needed"] == None, channels)
 
         self.current_dm = None
         self.current_channel = channels[0]["id"]
@@ -232,12 +238,13 @@ class Socket:
         await self.websocket.send_json({
             "status": 200,
             "type": "load_server",
+            "server_name": server_name,
             "channels": [{
                 "channel_id": channel["id"],
                 "channel_name": channel["name"],
                 "color": channel["color"],
                 "role_needed": channel["role_needed"],
-                } for channel in filter(lambda channel: is_user_owner or channel["role_needed"] in roles or channel["role_needed"] == None, channels)],
+                } for channel in channels],
             "messages": messages,
             "is_muted": is_muted,
         })

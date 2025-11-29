@@ -128,7 +128,7 @@ def get_server_name(server_id: int) -> dict:
     srv = db.query(models.Server).filter_by(id=server_id).first()
     if srv == None:
         return {'status': "error", 'message': "server doesnt exists"}
-    return {'status': "success", 'name': srv.name, 'link': srv.link}
+    return {'status': "success", 'name': srv.name, 'link': srv.invite_link}
 
 if __name__ == "__main__":
     id = create_server(1, "test", "testlink")
