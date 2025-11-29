@@ -32,7 +32,7 @@
         }
     }
 
-    let status = $state(null)
+    let status = $state(null);
 
     async function HandleJoiningServer() {
         const result = await JoinServer();
@@ -46,18 +46,18 @@
 </script>
 
 {#if status === "success"}
-    <div>
-        <h1>Thanks for joining</h1>
-        <a href="/app/main">Open Kittycord</a>
+    <div class="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 z-10">
+        <h1 class="text-2xl font-bold text-purple-800 mb-4">Dziękujemy za dołączenie!</h1>
+        <a href="/app/main" class="px-6 py-2 rounded-xl bg-gradient-to-r from-pink-300 to-purple-300 text-purple-900 font-semibold shadow hover:scale-105 transition-all">Otwórz Kittycord</a>
     </div>
 {:else if status == "404"}
-    <div>
-        <h1>Server not found</h1>
-        <a href="/app/main">Open Kittycord</a>
+    <div class="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-pink-100 z-10">
+        <h1 class="text-2xl font-bold text-red-700 mb-4">Nie znaleziono serwera</h1>
+        <a href="/app/main" class="px-6 py-2 rounded-xl bg-gradient-to-r from-pink-300 to-purple-300 text-purple-900 font-semibold shadow hover:scale-105 transition-all">Otwórz Kittycord</a>
     </div>
 {:else if status == "500"}
-    <div>
-        <h1>You already are on the server</h1>
-        <a href="/app/main">Open Kittycord</a>
+    <div class="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-yellow-50 to-pink-100 z-10">
+        <h1 class="text-2xl font-bold text-yellow-700 mb-4">Już jesteś na tym serwerze</h1>
+        <a href="/app/main" class="px-6 py-2 rounded-xl bg-gradient-to-r from-pink-300 to-purple-300 text-purple-900 font-semibold shadow hover:scale-105 transition-all">Otwórz Kittycord</a>
     </div>
 {/if}

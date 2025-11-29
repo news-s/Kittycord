@@ -188,15 +188,15 @@
         window.location.href("/app/main");
     }
 
-    onMount(async () => {
-        const data = await GetServerName();
+    // onMount(async () => {
+    //     const data = await GetServerName();
 
-        server_name = data.server_name
-        updated_server_name = data.server_name
+    //     server_name = data.server_name
+    //     updated_server_name = data.server_name
         
-        server_link = data.server_link
-        updated_server_link = data.server_link
-    });
+    //     server_link = data.server_link
+    //     updated_server_link = data.server_link
+    // });
 
     onDestroy(unsubscribe);
 </script>
