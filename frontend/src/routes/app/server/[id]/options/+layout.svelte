@@ -62,7 +62,7 @@
         Roles
         </a>
     {/if}
-    <a use:goto href={`/app/server/${server_id}`} class="flex items-center gap-3 px-6 py-3 rounded-2xl text-red-600 font-semibold hover:bg-gradient-to-r hover:from-red-200 hover:to-red-300 hover:text-red-800 transition-all duration-300 transform hover:scale-105">
+    <a href={`/app/server/${server_id}`} class="flex items-center gap-3 px-6 py-3 rounded-2xl text-red-600 font-semibold hover:bg-gradient-to-r hover:from-red-200 hover:to-red-300 hover:text-red-800 transition-all duration-300 transform hover:scale-105">
       Exit
     </a>
   </nav>
