@@ -259,76 +259,37 @@
     }
 </script>
 
-<div class="options-container">
-	<div class="roles-container">
-		<form>
-			<input type="text" placeholder="Name" id="create-role-name" />
-			<input type="text" placeholder="Color" id="create-role-color" />
-			<input type="submit" value="Add Role" onclick={HandleCreatingRole} />
-		</form>
-
-		{#each roles as role}
-			<div>
-				<button onclick={() => EnableEditingRole(role)}>
-					{role.role_name}
-				</button>
-				<button onclick={() => HandleRemovingRole(role.id)}>remove</button>
-			</div>
-		{/each}
-	</div>
-
-	{#if editing.state}
-		<div class="editing-container">
-            <input type="text" placeholder="Name" id="edit-role-name" value={editing.name}/>
-			<input type="text" placeholder="Color" id="edit-role-color" value={editing.color}/>
-			{#each roles as role}
-				{#if role.id === editing.id}
-					<form name="editing-form">
-						{#each permission_keys as key}
-							<label for={key}>{key}:</label>
-							<input type="checkbox" checked={role.permissions[key]} name={key}/>
-						{/each}
-					</form>
-				{/if}
-			{/each}
-
-            <button onclick={() => HandleEditing(editing.id)}>Save</button>
-		</div>
-	{/if}
+<div class="w-full h-screen flex flex-row">
+  <aside class="w-64 h-full overflow-y-auto flex flex-col gap-2 ml-12">
+    {#each roles as role}
+      <div class="flex items-center justify-between bg-white/70 rounded-xl px-4 py-2 shadow m-2">
+        <button onclick={() => EnableEditingRole(role)} class="text-purple-700 font-semibold hover:underline">{role.role_name}</button>
+        <button onclick={() => HandleRemovingRole(role.id)} class="text-red-600 font-semibold hover:underline">Usuń</button>
+      </div>
+    {/each}
+  </aside>
+  <main class="flex-1 flex flex-col items-center w-full overflow-y-auto">
+    <div class="w-full flex flex-col items-center pt-[8vh]" style="margin-right: 18rem;">
+      <form class="flex flex-col gap-6 w-full max-w-md bg-white/80 rounded-2xl shadow-lg p-8 border border-pink-100 mx-auto">
+        <input type="text" placeholder="Nazwa roli" id="create-role-name" class="px-4 py-2 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300 transition" />
+        <input type="text" placeholder="Kolor (np. #ff00ff)" id="create-role-color" class="px-4 py-2 rounded-xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-300 transition"/>
+        <button type="button" onclick={HandleCreatingRole} class="bg-gradient-to-r from-pink-300 to-purple-300 text-purple-900 font-semibold px-6 py-2 rounded-xl shadow hover:scale-105 hover:from-pink-400 hover:to-purple-400 transition-all">Dodaj rolę</button>
+      </form>
+      {#if editing.state}
+        <div class="mt-8 w-full max-w-md mx-auto bg-white/90 rounded-xl shadow p-6 flex flex-col gap-4">
+          <input type="text" placeholder="Nazwa" id="edit-role-name" value={editing.name} class="px-4 py-2 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300 transition"/>
+          <input type="text" placeholder="Kolor" id="edit-role-color" value={editing.color} class="px-4 py-2 rounded-xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-300 transition"/>
+          <form name="editing-form" class="flex flex-col gap-2">
+            {#each permission_keys as key}
+              <label for={key} class="flex items-center gap-2">
+                <input type="checkbox" checked={roles.find(r => r.id === editing.id)?.permissions[key]} name={key} class="accent-pink-500"/>
+                <span>{key}</span>
+              </label>
+            {/each}
+          </form>
+          <button onclick={() => HandleEditing(editing.id)} class="bg-gradient-to-r from-pink-300 to-purple-300 text-purple-900 font-semibold px-6 py-2 rounded-xl shadow hover:scale-105 hover:from-pink-400 hover:to-purple-400 transition-all">Zapisz</button>
+        </div>
+      {/if}
+    </div>
+  </main>
 </div>
-
-<style>
-	form {
-		height: fit-content;
-
-		display: flex;
-		flex-direction: column;
-
-		border: 1px solid #999;
-	}
-
-	input {
-		border: 1px solid #999;
-	}
-
-	button {
-		border: 1px solid #999;
-	}
-
-	.options-container {
-		display: flex;
-		flex-direction: row;
-	}
-
-	.roles-container {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.editing-container {
-		width: 500px;
-
-		display: flex;
-		flex-direction: column;
-	}
-</style>

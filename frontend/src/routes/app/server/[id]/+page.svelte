@@ -289,8 +289,17 @@
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
                 <span class="font-semibold text-gray-800">server-name</span>
-                <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                <svg 
+                    class="w-4 h-4 text-gray-600 cursor-pointer" 
+                    fill="currentColor" 
+                    viewBox="0 0 20 20" 
+                    role="button" 
+                    tabindex="0" 
+                    aria-label="Opcje serwera"
+                    onclick={ServerOptions}
+                    onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && ServerOptions()}
+                >
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
                 </svg>
             </div>
         </div>
