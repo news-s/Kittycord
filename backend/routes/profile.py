@@ -2,8 +2,9 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from auth_token import verify_token
+from database.servers import get_owner_id
 from database.profile import change_avatar, get_user_data, change_name, change_display_name, change_note
-from database.permissions import get_user_permissions
+from database.permissions import convert_to_permissions, get_user_permissions
 from routes.ws import broadcast
 
 router = APIRouter()
@@ -75,6 +76,14 @@ async def edit_avatar(data: EditProfile) -> str:
 
 @router.get("/permissions/{user_id}/{server_id}", status_code=200)
 async def get_permissions(user_id: int, server_id: int):
+    res = get_owner_id(server_id)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=404, detail="Server not found")
+    
+    if res["owner_id"] == user_id:
+        return convert_to_permissions("1111111")
+
     res = get_user_permissions(user_id, server_id)
 
     if res["status"] == "error":
