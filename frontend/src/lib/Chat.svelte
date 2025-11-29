@@ -174,8 +174,8 @@
         <form onsubmit={SendMessage} class="relative w-full" name="message-form">
             <input 
                 type="text" 
-                placeholder="Message #cute-cats" 
-                class="w-full px-5 py-4 pr-36 rounded-3xl bg-white/80 border border-purple-200/50 text-gray-800 text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent text-input"
+                placeholder="Message #chanel-name" 
+                class="w-full px-5 py-[10px] pr-36 rounded-3xl bg-white/80 border border-purple-200/50 text-gray-800 text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent text-input"
             />
             <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                 <button type="button" aria-label="Add emoji" class="p-2.5 rounded-full border-0 border-[#E5E7EB]" style="background: linear-gradient(90deg, #FBCFE8 0%, #E9D5FF 100%);">

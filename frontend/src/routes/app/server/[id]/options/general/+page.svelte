@@ -144,48 +144,16 @@
 
     onDestroy(unsubscribe);
 </script>
-<div class="options-wrapper">
-    <form>
-        <input type="text" bind:value={updated_server_name} placeholder="Name" />
-        <input type="text" bind:value={updated_server_link} placeholder="Link"/>
+
+<div class="flex flex-col items-center justify-center min-h-[80vh] w-full">
+    <form class="flex flex-col gap-6 w-full max-w-md bg-white/80 rounded-2xl shadow-lg p-8 border border-pink-100 mx-auto">
+        <input type="text" bind:value={updated_server_name} placeholder="Nazwa serwera" class="px-4 py-2 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300 transition" />
+        <input type="text" bind:value={updated_server_link} placeholder="Link do serwera" class="px-4 py-2 rounded-xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-300 transition"/>
         {#if user_permissions?.["Manage server"]}
-            <input type="submit" onclick={UpdateServer} value="Update"/>
+            <button type="button" onclick={UpdateServer} class="bg-gradient-to-r from-pink-300 to-purple-300 text-purple-900 font-semibold px-6 py-2 rounded-xl shadow hover:scale-105 hover:from-pink-400 hover:to-purple-400 transition-all">Aktualizuj</button>
         {/if}
     </form>
-
     {#if user_permissions?.["Manage server"]}
-        <button onclick={DeleteServer}>Delete</button>
+        <button onclick={DeleteServer} class="mt-8 bg-gradient-to-r from-red-200 to-pink-200 text-red-700 font-semibold px-6 py-2 rounded-xl shadow hover:scale-105 hover:from-red-300 hover:to-pink-300 transition-all">Usuń serwer</button>
     {/if}
 </div>
-
-<style>
-    .options-wrapper {
-        width: 100%;
-        height: 100%;
-
-        display: flex;
-        flex-direction: column;
-        gap: 50px;
-        
-        align-items: center;
-
-        overflow-y: scroll; 
-    }
-
-    form {
-        height: fit-content;
-
-        display: flex;
-        flex-direction: column;
-
-        border: 1px solid #999;
-    }
-
-    input {
-        border: 1px solid #999;
-    }
-
-    button {
-        border: 1px solid #999;
-    }
-</style>
