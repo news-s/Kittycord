@@ -53,6 +53,7 @@
             sleep(1000);
 
             if($profile !== null)break;
+            tries += 1;
         }
         if(profile === null)return;
 
