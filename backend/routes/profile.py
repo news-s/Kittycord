@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from auth_token import verify_token
-from database.profile import get_user_data, change_name, change_display_name, change_note
+from database.profile import change_avatar, get_user_data, change_name, change_display_name, change_note
 from database.permissions import get_user_permissions
 from routes.ws import broadcast
 
@@ -61,6 +61,15 @@ async def edit_note(data: EditProfile) -> str:
 
     res = change_note(user_id, data.new_val)
     
+    return res["status"]
+
+
+@router.put("/edit_profile/avatar", status_code=200)
+async def edit_avatar(data: EditProfile) -> str:
+    user_id = verify_token(data.token)
+
+    res = change_avatar(user_id, int(data.new_val))
+
     return res["status"]
 
 

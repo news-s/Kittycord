@@ -9,3 +9,4 @@ bcrypt
 pytest
 pytest-asyncio
 httpx
+python-multipart

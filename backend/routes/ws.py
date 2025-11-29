@@ -99,8 +99,13 @@ class Socket:
         if len(msg["content"]) > 1000:
             await self.handle_error(400, "Message content is too long")
             return
+        
+        try:
+            attachment_id = msg["attachment_id"]
+        except KeyError:
+            attachment_id = None
 
-        message_id = store_channel_message(self.user_id, self.current_channel, msg["content"], None)["message_id"]
+        message_id = store_channel_message(self.user_id, self.current_channel, msg["content"], attachment_id)["message_id"]
 
         await broadcast.broadcast({
             "class": ["channel"],
@@ -109,7 +114,8 @@ class Socket:
             "channel_id": self.current_channel,
             "date": str(datetime.datetime.now()),
             "content": msg["content"],
-            "message_id": message_id
+            "message_id": message_id,
+            "attachment_id": attachment_id
         })
 
         await self.websocket.send_json({
@@ -263,7 +269,12 @@ class Socket:
             await self.handle_error(400, "DM not yet selected")
             return
         
-        dm_id = store_direct_message(self.user_id, self.current_dm, msg["content"], None)
+        try:
+            attachment_id = msg["attachment_id"]
+        except KeyError:
+            attachment_id = None
+        
+        dm_id = store_direct_message(self.user_id, self.current_dm, msg["content"], attachment_id)
         
         await broadcast.broadcast({
             "class": ["reciever", "author"],
@@ -272,7 +283,8 @@ class Socket:
             "author_id": self.user_id,
             "date": str(datetime.datetime.now()),
             "content": msg["content"],
-            "message_id": dm_id
+            "message_id": dm_id,
+            "attachment_id": attachment_id
         })
 
         await self.websocket.send_json({

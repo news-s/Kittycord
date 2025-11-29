@@ -1,18 +1,17 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from pydantic.v1.typing import convert_generics
 
 from auth_token import verify_token
 from utils import can_manage_role, can_manage_user, get_highest_role, has_permission, is_member
 from database.permissions import convert_to_permissions
-from database.roles import add_role_to_user, change_role_name, create_role, delete_role, get_role_color, get_roles_in_server, get_server_id_by_role, get_user_roles_in_server, reorder_roles, set_role_permissions, change_role_color, remove_role_from_user
+from database.roles import add_role_to_user, change_role_name, create_role, delete_role, get_role_by_id, get_role_color, get_roles_in_server, get_server_id_by_role, get_user_roles_in_server, reorder_roles, set_role_permissions, change_role_color, remove_role_from_user
 from database.permissions import permissions
 from routes.ws import broadcast
 
 ROLES_PERM = "Manage roles"
 
 router = APIRouter()
-
-# TODO implement role ordering
 
 class AddRole(BaseModel):
     token: str
@@ -199,6 +198,15 @@ async def all_roles(user_id: int, server_id: int):
     
     return list(filter(lambda role: role["id"] in res["roles"], server_roles))
 
+
+@router.get("/role/{role_id}")
+async def get_role(role_id: int):
+    res = get_role_by_id(role_id)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=404, detail="Role not found")
+
+    return res["role"]
 
 
 class EditRole(BaseModel):

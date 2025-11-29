@@ -21,6 +21,7 @@ def get_user_data(user_id: int):
         "creation_date": usr.account_creation_date,
         "servers": [server[0] for server in servers],
         "friends": friends,
+        "avatar_id": usr.avatar_id
     }
 
 def change_display_name(user_id: int, new_name: str):
@@ -44,6 +45,13 @@ def change_note(user_id: int, new_note: str):
     db_gen = models.get_db()
     db = next(db_gen)
     db.execute(update(models.User).where(models.User.id==user_id).values(note=new_note))
+    db.commit()
+    return {'status': "success"}
+
+def change_avatar(user_id: int, file_id: int):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    db.execute(update(models.User).where(models.User.id==user_id).values(avatar_id=file_id))
     db.commit()
     return {'status': "success"}
 

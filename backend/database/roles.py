@@ -150,6 +150,19 @@ def change_role_name(role_id: int, new_name: str):
     db.commit()
     return {'status': "success"}
 
+def get_role_by_id(role_id: int):
+    db_gen = models.get_db()
+    db = next(db_gen)
+    role = db.query(models.Role).filter_by(id=role_id).first()
+    if role == None:
+        return {'status': "error", 'message': "Role does not exist"}
+    return {'status': "success", 'role': {
+        'id': role.id,
+        'role_name': role.role_name,
+        'permissions': permissions.convert_to_permissions(role.permissions),
+        'color': role.color
+    }}
+
 
 def get_highest_role(user_id: int, server_id: int) -> int | None:
     user_roles = get_user_roles_in_server(user_id, server_id)
