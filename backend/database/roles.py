@@ -150,6 +150,24 @@ def change_role_name(role_id: int, new_name: str):
     db.commit()
     return {'status': "success"}
 
+
+def get_highest_role(user_id: int, server_id: int) -> int | None:
+    user_roles = get_user_roles_in_server(user_id, server_id)
+    if user_roles["status"] == "error":
+        return None
+    
+    user_role_ids = set(user_roles["roles"])
+    
+    order = get_role_order(server_id)
+    if order["status"] == "error":
+        return None
+
+    for role_id in order["role_order"]:
+        if role_id in user_role_ids:
+            return role_id
+
+    return None
+
 if __name__ == "__main__":
     server_id = 1
     print(create_role(server_id, "Moderator", {

@@ -93,7 +93,55 @@ def test_remove_role_from_user(client, db):
 
 
 def test_get_roles_in_server(client, db):
-    pass
+    perms = convert_to_permissions("0000000")
+    create_user("name", "pass")
+    user_id = verify_user("name", "pass")
+    server_id = create_server(user_id, "name", "link")["server_id"]
+    role_id = create_role(server_id, "name", perms, "#FF00E6")["role_id"]
+
+    res = client.get(f"/roles_in_server/{server_id}")
+    data = res.json()
+
+    assert data[0]["id"] == role_id
+    assert data[0]["role_name"] == "name"
+    assert data[0]["permissions"] == perms
+    assert data[0]["color"] == "#FF00E6"
+
+def test_get_role_color(client, db):
+    perms = convert_to_permissions("0000000")
+    create_user("name", "pass")
+    user_id = verify_user("name", "pass")
+    server_id = create_server(user_id, "name", "link")["server_id"]
+    role_id = create_role(server_id, "name", perms, "#FF00E6")["role_id"]
+    add_role_to_user(user_id, server_id, role_id)
+
+
+    res = client.get(f"/highest_role_color/{user_id}/{server_id}")
+
+    assert res.status_code == 200
+
+    data = res.json()
+
+    assert data == "#FF00E6"
+
+def test_get_all_roles(client, db):
+    perms = convert_to_permissions("0000000")
+    create_user("name", "pass")
+    user_id = verify_user("name", "pass")
+    server_id = create_server(user_id, "name", "link")["server_id"]
+    role_id = create_role(server_id, "name", perms, "#FF00E6")["role_id"]
+    add_role_to_user(user_id, server_id, role_id)
+
+    res = client.get(f"/all_user_roles/{user_id}/{server_id}")
+
+    assert res.status_code == 200
+
+    data = res.json()
+
+    assert data[0]["id"] == role_id
+    assert data[0]["role_name"] == "name"
+    assert data[0]["permissions"] == perms
+    assert data[0]["color"] == "#FF00E6"
 
 
 def test_edit_role_name(client, db):

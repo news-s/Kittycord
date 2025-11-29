@@ -1,5 +1,6 @@
 from sqlalchemy import insert, delete
 
+from database.roles import get_highest_role, get_role_color
 from database import models
 
 def join_server(user_id: int, server_id: int):
@@ -104,7 +105,7 @@ def get_users_in_server(server_id: int):
             [{
                 'name': db.query(models.User).filter_by(id=rel.user_id).first().display_name,
                 'user_id': rel.user_id,
-                'roles': rel.roles
+                'color': get_role_color(get_highest_role(rel.user_id, server_id)).get("color", [])
             } for rel in rels]
         }
 

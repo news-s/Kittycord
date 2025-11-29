@@ -80,7 +80,6 @@ def test_get_members(client, db):
     data = res.json()
 
     assert data[0]["name"] == "name"
-    assert data[0]["roles"] == []
 
 
 def test_edit_server_name(client, db):

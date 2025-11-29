@@ -2,9 +2,9 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from auth_token import verify_token
-from utils import can_manage_role, can_manage_user, has_permission, is_member
+from utils import can_manage_role, can_manage_user, get_highest_role, has_permission, is_member
 from database.permissions import convert_to_permissions
-from database.roles import add_role_to_user, change_role_name, create_role, delete_role, get_roles_in_server, get_server_id_by_role, reorder_roles, set_role_permissions, change_role_color, remove_role_from_user
+from database.roles import add_role_to_user, change_role_name, create_role, delete_role, get_role_color, get_roles_in_server, get_server_id_by_role, get_user_roles_in_server, reorder_roles, set_role_permissions, change_role_color, remove_role_from_user
 from database.permissions import permissions
 from routes.ws import broadcast
 
@@ -169,6 +169,37 @@ async def roles_in_server(server_id: int):
         raise HTTPException(status_code=404, detail="Server not found")
     
     return res["roles"]
+
+@router.get("/highest_role_color/{user_id}/{server_id}", status_code=200)
+async def highest_role_color(user_id: int, server_id: int) -> str:
+    role_id = get_highest_role(user_id, server_id)
+
+    if role_id == None:
+        return "#000000"
+    
+    res = get_role_color(role_id)
+
+    if res["status"] == "error":
+        return "#000000"
+    
+    return res["color"]
+
+@router.get("/all_user_roles/{user_id}/{server_id}")
+async def all_roles(user_id: int, server_id: int):
+    res = get_roles_in_server(server_id)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=404, detail="Server doesn't exist")
+
+    server_roles = res["roles"]
+    res = get_user_roles_in_server(user_id, server_id)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=404, detail="User is not member of server")
+    
+    return list(filter(lambda role: role["id"] in res["roles"], server_roles))
+
+
 
 class EditRole(BaseModel):
     token: str

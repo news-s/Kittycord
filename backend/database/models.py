@@ -4,39 +4,40 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 Base = declarative_base()
 
 class User(Base):
-  __tablename__ = "Users"
-  id = Column(Integer, primary_key=True)
-  name = Column(String, nullable=False, unique=True)
-  display_name = Column(String(30))
-  note = Column(String(255))
-  password = Column(LargeBinary)
-  badges = Column(ARRAY(String))
-  account_creation_date = Column(DateTime, nullable=False)
-  friends = Column(ARRAY(Integer))
+    __tablename__ = "Users"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    display_name = Column(String(30))
+    note = Column(String(255))
+    password = Column(LargeBinary)
+    badges = Column(ARRAY(String))
+    account_creation_date = Column(DateTime, nullable=False)
+    friends = Column(ARRAY(Integer))
+    avatar_id = Column(ForeignKey("Files.id"))
 
 class User_Server(Base):
-  __tablename__ = "User_Server"
-  id = Column(Integer, primary_key=True) # Żeby sqlalchemy sie odwaliło
-  user_id = Column(Integer, ForeignKey("Users.id"))
-  server_id = Column(Integer, ForeignKey("Servers.id"))
-  roles = Column(ARRAY(Integer))  # If your reading this, please forgive me for this abomination
-  muted = Column(DateTime, nullable=True, default=None)
+    __tablename__ = "User_Server"
+    id = Column(Integer, primary_key=True) # Żeby sqlalchemy sie odwaliło
+    user_id = Column(Integer, ForeignKey("Users.id"))
+    server_id = Column(Integer, ForeignKey("Servers.id"))
+    roles = Column(ARRAY(Integer))  # If your reading this, please forgive me for this abomination
+    muted = Column(DateTime, nullable=True, default=None)
 
 class Server(Base):
-  __tablename__ = "Servers"
-  id = Column(Integer, primary_key=True)
-  name = Column(String, nullable=False)
-  owner_id = Column(Integer, ForeignKey("Users.id"), nullable=False)
-  invite_link = Column(String, nullable=False, unique=True) # For localhost:2137/invite/__code__, store here only __code__
-  role_order = Column(ARRAY(Integer))   
+    __tablename__ = "Servers"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    owner_id = Column(Integer, ForeignKey("Users.id"), nullable=False)
+    invite_link = Column(String, nullable=False, unique=True) # For localhost:2137/invite/__code__, store here only __code__
+    role_order = Column(ARRAY(Integer))   
 
 class Channel(Base):
-  __tablename__ = "Channels"
-  id = Column(Integer, primary_key=True)
-  server_id = Column(Integer, ForeignKey("Servers.id"), nullable=False)
-  name = Column(String, nullable=False)
-  role_needed = Column(String, nullable=True)
-  color = Column(String, default="#FF00E6")
+    __tablename__ = "Channels"
+    id = Column(Integer, primary_key=True)
+    server_id = Column(Integer, ForeignKey("Servers.id"), nullable=False)
+    name = Column(String, nullable=False)
+    role_needed = Column(String, nullable=True)
+    color = Column(String, default="#FF00E6")
 
 class Message(Base):
     __tablename__ = "Messages"

@@ -52,7 +52,6 @@ class Socket:
                 case "reset_ids":
                     if message["type"] == "remove_channel" and message["channel_id"] == self.current_channel:
                         self.current_channel = None
-                        self.current_server = None
                     if message["type"] == "remove_server" and message["server_id"] == self.current_server:
                         self.current_channel = None
                         self.current_server = None
