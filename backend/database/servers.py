@@ -125,7 +125,7 @@ def get_servers_of_user(user_id: int):
 def get_server_name(server_id: int) -> dict:
     db_gen = models.get_db()
     db = next(db_gen)
-    srv = db.query(models.Server).filter_by(id=server_id).first().first()
+    srv = db.query(models.Server).filter_by(id=server_id).first()
     if srv == None:
         return {'status': "error", 'message': "server doesnt exists"}
     return {'status': "success", 'name': srv.name, 'link': srv.link}
