@@ -10,8 +10,10 @@
     let channels = $state(null);
     let messages = $state(null);
     let open = $state(false);
-    let server_id = null;
+    let server_id = $state(null);
     let user_permissions = $state([]);
+    let server_name = $state("Server Name");
+    let channel_name = $state("Channel Name");
 
     const page_unsubscribe = page.subscribe(p => {
         server_id = p.params.id
@@ -28,11 +30,15 @@
         const data = JSON.parse(event.data);
         
         if(data.type === "load_server") {
+            server_name = data.server_name
+            channel_name = data.channels[0]?.channel_name
+
             channels = data.channels;
             messages = data.messages;
         }
         else if(data.type === "load_channel") {
             messages = data.messages;
+            channel_name = data.channel_name
         }
         else if(data.type === "new_message")  messages.push(data);
         else if(data.type === "add_channel") channels.push(data);
@@ -413,8 +419,8 @@
 
     async function GetRoleById(role_id) {
         try {
-            const res = await fetch(`http://localhost:8000/get_role_by_id/${role_id}`, {
-                method: "PUT",
+            const res = await fetch(`http://localhost:8000/role/${role_id}`, {
+                method: "GET",
                 headers: {
                     "Content-Type": "application/json",
                 }
@@ -442,13 +448,32 @@
 
         if(result !== "success")return;
 
-        // const role = await GetRoleById(role_id);
-        // showing_profile.roles.push(role)
+        const role = await GetRoleById(role_id);
+        showing_profile.roles.push(role)
     }   
 
     async function GetUserPermissions(user_id) {
         try {
             const res = await fetch(`http://localhost:8000/permissions/${user_id}/${server_id}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            return await res.json();
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    async function GetServerName() {
+        try {
+            const res = await fetch(`http://localhost:8000/server_name/${server_id}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -494,14 +519,17 @@
 
         users = await GetAllUsers();
         roles = await GetAllRoles();
+
         user_permissions = await GetUserPermissions($profile.user_id);
+
+        const data = await GetServerName();
+        server_name = data.server_name;
     });
 
     onDestroy(() => {
         $socket?.removeEventListener('message', message);
         page_unsubscribe();
     });
-
 </script>
 
 <div class="flex" style="width: calc(100vw - 72px); height: 100vh; max-width: calc(100vw - 72px); overflow: hidden;">
@@ -511,7 +539,7 @@
                 <svg class="w-5 h-5 text-pink-500" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
-                <span class="font-semibold text-gray-800">server-name</span>
+                <span class="font-semibold text-gray-800">{server_name}</span>
                 <svg 
                     class="w-4 h-4 text-gray-600 cursor-pointer" 
                     fill="currentColor" 
@@ -581,7 +609,7 @@
         </div>
     </div>
 
-    <Chat bind:messages={messages}></Chat>
+    <Chat bind:messages={messages} serverId={server_id} {channel_name}></Chat>
 
     <div class="w-60 bg-[#f7f3f9] border-l border-pink-200/50 flex flex-col flex-shrink-0">
         <div class="p-4">

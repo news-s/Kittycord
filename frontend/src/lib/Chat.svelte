@@ -2,7 +2,7 @@
 	import { onMount, tick } from "svelte";
     import { socket, profile } from "../routes/app/stores";
 
-    let { messages } = $props();   
+    let { messages, serverId, channel_name } = $props();   
 
     async function SendMessage(event) {
         event.preventDefault();
@@ -22,10 +22,42 @@
         event.target.reset()
     }
 
-    // onMount(() => {
-    //     const form = document.forms["message-form"];
-    //     form.addEventListener("submit", SendMessage);
-    // });
+    async function GetUserPermissions(user_id) {
+        try {
+            const res = await fetch(`http://localhost:8000/permissions/${user_id}/${serverId}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            return await res.json();
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    let user_permissions = $state(null)
+    onMount(async () => {
+        const form = document.forms["message-form"];
+        form.addEventListener("submit", SendMessage);
+
+        let tries = 0;
+        while(tries < 2) {
+            sleep(1000);
+
+            if($profile !== null)break;
+        }
+        if(profile === null)return;
+
+        user_permissions = await GetUserPermissions($profile?.user_id);
+    });
 
     let editing = $state({state: false, id: null, input: null});
 
@@ -103,7 +135,7 @@
     <div class="h-14 px-4 flex items-center justify-between border-b border-purple-200/50">
         <div class="flex items-center gap-2">
             <span class="text-purple-500 font-semibold">#</span>
-            <span class="font-semibold text-gray-800">chanel-name</span>
+            <span class="font-semibold text-gray-800">{channel_name}</span>
         </div>
         <div class="flex items-center gap-2">
             <button aria-label="Notifications" class="p-2 hover:bg-white/50 rounded">
@@ -141,8 +173,7 @@
                         <p class="text-gray-700 text-base leading-relaxed">{message.content}</p>
                     {/if}
                 </div>
-                <!-- enable after getting profile will provide id -->
-                <!-- {#if message.author_id === $profile.id} -->
+                {#if message.author_id === $profile.id || user_permissions?.["Manage channels"] || user_permissions?.["Admin"]}
                     {#if !editing.state}
                         <div class="absolute top-0 right-2 -translate-y-1/2 opacity-0 group-hover/message:opacity-100 flex items-center gap-1 bg-white border border-purple-200/50 rounded-lg shadow-lg transition-opacity">
                             <button 
@@ -165,7 +196,7 @@
                             </button>
                         </div>
                     {/if}
-                <!-- {/if} -->
+                {/if}
             </div>
         {/each}
     </div>
