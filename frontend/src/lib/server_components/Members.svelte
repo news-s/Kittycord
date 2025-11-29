@@ -66,45 +66,55 @@
 </script>
 
 <div class="w-60 bg-[#f7f3f9] border-l border-pink-200/50 flex flex-col flex-shrink-0">
-        <div class="p-4">
-            <h3 class="text-sm font-semibold text-gray-700">Members</h3>
+    <div class="p-4">
+        <h3 class="text-sm font-semibold text-gray-700">Members</h3>
 
+        <div class="space-y-2">
             {#each users as user}
-                <div class="user-container">
-                    <button onclick={() => ShowProfile(user.user_id)}>{user.name}</button>
-                </div>
+                <button 
+                    type="button"
+                    class="flex items-center gap-3 p-2 rounded-lg hover:bg-pink-100 transition cursor-pointer w-full text-left"
+                    onclick={() => ShowProfile(user.id)}
+                    aria-label={`Show profile for ${user.name}`}
+                >
+                    <img src={user.avatar} alt="avatar" class="w-8 h-8 rounded-full border-2 border-pink-200" />
+                    <div class="flex-1">
+                        <div class="font-semibold text-gray-800">{user.name}</div>
+                        <div class="text-xs text-gray-500">{user.status}</div>
+                    </div>
+                </button>
             {/each}
-            
-            {#if showing_profile.state}
-                <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50" onclick={() => showing_profile.state = false} onkeydown={(e) => {e.key === 'Escape'; showing_profile.state = false}} role="button" tabindex="0">
-                    <div class="profile bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl p-8 shadow-2xl border border-pink-200/50 flex flex-col items-center" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="dialog" tabindex="-1" style="width: 440px;">
-                        <h1>{showing_profile.display_name}</h1>
-                        <h5>{showing_profile.name}</h5>
-                        
-                        <p>{showing_profile.note}</p>
-
-                        <div class="roles">
+        </div>
+        
+        {#if showing_profile.state}
+            <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50" onclick={() => showing_profile.state = false} onkeydown={(e) => {e.key === 'Escape'; showing_profile.state = false}} role="button" tabindex="0">
+                <div class="profile bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl p-8 shadow-2xl border border-pink-200/50 flex flex-col items-center gap-4" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="dialog" tabindex="-1" style="width: 440px;">
+                    <div class="w-24 h-24 rounded-full border-4 border-pink-200 shadow-lg mb-2 bg-black flex items-center justify-center">
+                    </div>
+                    <h1 class="text-2xl font-bold text-purple-800">{showing_profile.display_name}</h1>
+                    <h5 class="text-lg text-gray-600">@{showing_profile.name}</h5>
+                    <p class="max-w-md text-center text-gray-700 italic">{showing_profile.note}</p>
+                    <div class="roles w-full flex flex-wrap justify-center gap-2 mt-4">
+                        {#if user_permissions?.["Manage roles"] || user_permissions?.["Admin"]}
+                            <select class="w-32 px-2 py-1 rounded-xl border border-pink-200 bg-white text-purple-800 font-semibold">
+                                {#each roles as role}
+                                    {#if !showing_profile.roles.some(obj => obj.id === role.id)}
+                                        <option value={role.id} style={`color: ${role.color}`}>{role.role_name}</option>
+                                    {/if}
+                                {/each}
+                            </select>
+                            <button onclick={() => HandleAddingRoles(showing_profile.user_id)} class="ml-2 px-4 py-1 rounded-xl bg-gradient-to-r from-pink-300 to-purple-300 text-purple-900 font-semibold shadow hover:scale-105 transition-all">Dodaj rolę</button>
+                        {/if}
+                        {#each showing_profile.roles as role}
                             {#if user_permissions?.["Manage roles"] || user_permissions?.["Admin"]}
-                                <select class="w-20" id="role">
-                                    {#each roles as role}
-                                        {#if !showing_profile.roles.some(obj => obj.id === role.id)}
-                                            <option value={role.id} style={`color: ${role.color}`}>{role.role_name}</option>
-                                        {/if}
-                                    {/each}
-                                </select>
-                                <button onclick={() => AddRole(showing_profile.user_id)}>Add Role</button>
+                                <button onclick={() => HandleRemovingRoles(showing_profile.user_id, role.id)} class="px-3 py-1 rounded-xl bg-purple-100 text-purple-800 font-semibold shadow hover:bg-purple-200 transition-all">{role.role_name}</button>
+                            {:else}
+                                <div class="px-3 py-1 rounded-xl bg-purple-50 text-purple-700 font-semibold shadow">{role.role_name}</div>
                             {/if}
-                            {#each showing_profile.roles as role}
-                                <br>
-                                {#if user_permissions?.["Manage roles"] || user_permissions?.["Admin"]}
-                                    <button onclick={() => RemoveRole(showing_profile.user_id, role.id)}>{role.role_name}</button>
-                                {:else}
-                                    <div>{role.role_name}</div>
-                                {/if}
-                            {/each}
-                        </div>
+                        {/each}
                     </div>
                 </div>
-            {/if}
-        </div>
+            </div>
+        {/if}
     </div>
+</div>
