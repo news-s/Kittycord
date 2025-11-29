@@ -168,7 +168,7 @@
         }
         if(tries >= 3)return;
 
-        if(!user_permissions?.["Manage roles"])window.location.href(`/app/server/${server_id}`)
+        if(!user_permissions?.["Manage roles"]  && !user_permissions?.["Admin"])window.location.href(`/app/server/${server_id}`)
 
         roles = await GetRoles();
         console.log($state.snapshot(roles));

@@ -535,7 +535,7 @@
                     </svg>
                     Text Channels
                 </button>
-                {#if user_permissions?.["Manage channels"]}
+                {#if user_permissions?.["Manage channels"] || user_permissions?.["Admin"]}
                     <button 
                         onclick={() => open = !open}
                         aria-label="Create Channel"
@@ -558,7 +558,7 @@
                             <span style="color: {channel.color || '#a855f7'}" class="group-hover/item:brightness-110">#</span>
                             <span class="text-sm font-medium">{channel.channel_name}</span>
                         </button>
-                        {#if user_permissions?.["Manage channels"]}
+                        {#if user_permissions?.["Manage channels"] || user_permissions?.["Admin"]}
                             <button 
                                 onclick={ () => {
                                     editing_channel.state = !editing_channel.state;
@@ -602,17 +602,23 @@
                         <p>{showing_profile.note}</p>
 
                         <div class="roles">
-                            <select class="w-20" id="role">
-                                {#each roles as role}
-                                    {#if !showing_profile.roles.some(obj => obj.id === role.id)}
-                                        <option value={role.id} style={`color: ${role.color}`}>{role.role_name}</option>
-                                    {/if}
-                                {/each}
-                            </select>
-                            <button onclick={() => HandleAddingRoles(showing_profile.user_id)}>Add Role</button>
+                            {#if user_permissions?.["Manage roles"] || user_permissions?.["Admin"]}
+                                <select class="w-20" id="role">
+                                    {#each roles as role}
+                                        {#if !showing_profile.roles.some(obj => obj.id === role.id)}
+                                            <option value={role.id} style={`color: ${role.color}`}>{role.role_name}</option>
+                                        {/if}
+                                    {/each}
+                                </select>
+                                <button onclick={() => HandleAddingRoles(showing_profile.user_id)}>Add Role</button>
+                            {/if}
                             {#each showing_profile.roles as role}
                                 <br>
-                                <button onclick={() => HandleRemovingRoles(showing_profile.user_id, role.id)}>{role.role_name}</button>
+                                {#if user_permissions?.["Manage roles"] || user_permissions?.["Admin"]}
+                                    <button onclick={() => HandleRemovingRoles(showing_profile.user_id, role.id)}>{role.role_name}</button>
+                                {:else}
+                                    <div>{role.role_name}</div>
+                                {/if}
                             {/each}
                         </div>
                     </div>

@@ -57,7 +57,7 @@
     <a href="./general" class="flex items-center gap-3 px-6 py-3 rounded-2xl text-purple-800 font-semibold hover:bg-gradient-to-r hover:from-pink-200 hover:to-purple-200 hover:text-purple-900 transition-all duration-300 transform hover:scale-105">
       General
     </a>
-    {#if user_permissions?.["Manage roles"]}
+    {#if user_permissions?.["Manage roles"] || user_permissions?.["Admin"]}
         <a href="./roles" class="flex items-center gap-3 px-6 py-3 rounded-2xl text-purple-800 font-semibold hover:bg-gradient-to-r hover:from-pink-200 hover:to-purple-200 hover:text-purple-900 transition-all duration-300 transform hover:scale-105">
         Roles
         </a>
