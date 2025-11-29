@@ -1,14 +1,9 @@
 <script>
-    import bcrypt from 'bcryptjs';
-
     let username = $state("");
     let password = $state("");
     let rememberMe = $state(false);
 
     async function login() {
-        const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(password, salt);
-
         const res = await fetch('http://localhost:8000/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

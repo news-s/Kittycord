@@ -1,10 +1,12 @@
 <script>
 	import { onMount } from "svelte";
-  import { profile, socket } from "../stores";
+  import { profile, socket, load_server_bar } from "../stores";
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms)); 
 
   onMount(async () => {
+    load_server_bar.set(true);
+
     let connected = false;
     let tries = 0;
     while(!connected) {

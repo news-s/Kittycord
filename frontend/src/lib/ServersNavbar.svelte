@@ -42,8 +42,6 @@
         if($profile === null)return;
         profile.update(object => ({...object, servers: [...object.servers, data?.server_id]}));
     }
-
-    // onDestroy(subscription);
 </script>
 
 <nav class="flex flex-col items-center gap-2 py-3 h-screen w-[72px] bg-white/60 border-r border-[#fbcfe8]/50">

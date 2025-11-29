@@ -1,7 +1,8 @@
 <script>
     import { page } from "$app/stores";
 	import { isValidationError } from "@sveltejs/kit";
-	import { onMount } from "svelte";
+	import { onMount, onDestroy } from "svelte";
+    import { profile } from "../../../../stores";
 
     const server_id = $page.params.id;
 
@@ -114,7 +115,61 @@
         editing.state = true;
     }
 
+    let user_permissions = $state(null);
+
+    async function GetUserPermissions(user_id) {
+        try {
+            const res = await fetch(`http://localhost:8000/permissions/${user_id}/${server_id}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            return res.json();
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    //getting profile;
+    const unsubscribe = profile.subscribe(async () => {
+        let tries = 0;
+        if($profile === null){
+            while(tries < 3){
+                await sleep(1000);
+                
+                if($profile !== null) break;
+    
+                tries += 1;
+            }
+
+            if(tries >= 3)return;
+        };
+
+        user_permissions = await GetUserPermissions($profile.user_id);
+    });
+
+    onDestroy(unsubscribe);
+
     onMount(async () => {
+        let tries = 0;
+        while(tries < 3){
+            await sleep(1000);
+            
+            if(user_permissions !== null) break;
+
+            tries += 1;
+        }
+        if(tries >= 3)return;
+
+        if(!user_permissions?.["Manage roles"])window.location.href(`/app/server/${server_id}`)
+
         roles = await GetRoles();
         console.log($state.snapshot(roles));
     });

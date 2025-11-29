@@ -1,13 +1,17 @@
 <script>
     import { onDestroy, onMount } from "svelte";
-    import { profile, socket } from "../../stores.js";
+    import { profile, socket, load_server_bar } from "../../stores.js";
     import { page } from "$app/stores";
 	import Chat from "$lib/Chat.svelte";
+	import { json } from "@sveltejs/kit";
 
+    let users_cache = {};
+    let users = $state(null);
     let channels = $state(null);
     let messages = $state(null);
     let open = $state(false);
     let server_id = null;
+    let user_permissions = $state([]);
 
     const page_unsubscribe = page.subscribe(p => {
         server_id = p.params.id
@@ -36,7 +40,13 @@
         else if(data.type === "remove_channel") {
             channels = channels.filter(channel => channel.channel_id !== data.channel_id);
             
-            SwitchChannel(channels[0].channel_id);
+            if(channels.length > 0) {
+                SwitchChannel(channels[0].channel_id);
+                return;
+            }
+            
+            channels = [];
+            messages = [];
         }
         else if(data.type === "edit_message") {
             for (const message of messages) {
@@ -60,37 +70,6 @@
     }
 
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms)); 
-
-    onMount(async () => {
-        let token = localStorage.getItem('token');
-        if (token === undefined) window.location.href = '/login';
-
-        let connected = false;
-        let tries = 0;
-        while(!connected) {
-            if($socket?.readyState === WebSocket.OPEN)connected = true;
-            tries += 1;
-            if(tries > 3) {
-                window.location.pathname = "/login"
-                return;
-            };
-            console.warn("Not connected to the web socket. Retrying in 1 second...");
-
-            await sleep(1000)
-        }
-
-        $socket.addEventListener('message', message);
-
-        $socket.send(JSON.stringify({
-            type: "server",
-            content: server_id
-        }));
-    });
-
-    onDestroy(() => {
-        $socket?.removeEventListener('message', message);
-        page_unsubscribe();
-    });
 
     async function CreateChannel(token, channel_name) {
         if(server_id === null)return;
@@ -279,6 +258,250 @@
         window.location.href = `/app/server/${server_id}/options`;
     }
 
+    async function GetAllUsers() {
+        try {
+            const res = await fetch(`http://localhost:8000/get_members/${server_id}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            return await res.json();
+
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    async function GetProfile(user_id) {
+        try {
+            const res = await fetch(`http://localhost:8000/profile/${user_id}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            return await res.json();
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    async function GetUserRoles(user_id) {
+        try {
+            const res = await fetch(`http://localhost:8000/all_user_roles/${user_id}/${server_id}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            return await res.json();
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    let showing_profile = $state({state: false, name: null, username: null, note: null, user_id: null, roles: []});
+    let roles = $state([]);
+
+    async function ShowProfile(user_id) {
+        const profile = await GetProfile(user_id);
+
+        showing_profile.display_name = profile.display_name;
+        showing_profile.name = profile.name;
+        showing_profile.note = profile.note;
+        showing_profile.user_id = profile.user_id;
+        showing_profile.roles = await GetUserRoles(user_id);
+        showing_profile.state = true;
+
+        roles = await GetAllRoles();
+    }
+
+    async function GetAllRoles() {
+        try {
+            const res = await fetch(`http://localhost:8000/roles_in_server/${server_id}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            return await res.json();
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    async function AddRole(token, role_id, user_id) {
+        try {
+            const res = await fetch("http://localhost:8000/add_role", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    token: token,
+                    role_id: role_id,
+                    user_id: user_id
+                })
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            return await res.json();
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    async function RemoveRole(token, role_id, user_id) {
+        try {
+            const res = await fetch("http://localhost:8000/remove_role", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    token: token,
+                    role_id: role_id,
+                    user_id: user_id
+                })
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            return await res.json();
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    async function HandleRemovingRoles(user_id, role_id) {
+        const token = localStorage.getItem("token");
+
+        if(token === undefined || user_id === undefined || role_id === undefined)return;
+
+        const result = await RemoveRole(token, role_id, user_id)
+
+        if(result !== "success")return;
+
+        showing_profile.roles = showing_profile.roles.filter(role => role.id !== role_id);
+    }
+
+    async function GetRoleById(role_id) {
+        try {
+            const res = await fetch(`http://localhost:8000/get_role_by_id/${role_id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            return await res.json();
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    async function HandleAddingRoles(user_id) {
+        const token = localStorage.getItem("token");
+
+        const select = document.getElementById("role");
+        const role_id = select.value;
+
+        if( !role_id || role_id === undefined || user_id === undefined || token === undefined) return;
+
+        const result = await AddRole(token, role_id, user_id);
+
+        if(result !== "success")return;
+
+        // const role = await GetRoleById(role_id);
+        // showing_profile.roles.push(role)
+    }   
+
+    async function GetUserPermissions(user_id) {
+        try {
+            const res = await fetch(`http://localhost:8000/permissions/${user_id}/${server_id}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            return await res.json();
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    onMount(async () => {
+        let token = localStorage.getItem('token');
+        if (token === undefined) window.location.href = '/login';
+
+        load_server_bar.set(true);
+
+        let connected = false;
+        let tries = 0;
+        while(!connected) {
+            if($socket?.readyState === WebSocket.OPEN)connected = true;
+            tries += 1;
+            if(tries > 3) {
+                window.location.pathname = "/login"
+                return;
+            };
+            console.warn("Not connected to the web socket. Retrying in 1 second...");
+
+            await sleep(1000)
+        }
+
+        $socket.addEventListener('message', message);
+
+        $socket.send(JSON.stringify({
+            type: "server",
+            content: server_id
+        }));
+
+        users = await GetAllUsers();
+        roles = await GetAllRoles();
+        user_permissions = await GetUserPermissions($profile.user_id);
+    });
+
+    onDestroy(() => {
+        $socket?.removeEventListener('message', message);
+        page_unsubscribe();
+    });
+
 </script>
 
 <div class="flex" style="width: calc(100vw - 72px); height: 100vh; max-width: calc(100vw - 72px); overflow: hidden;">
@@ -289,9 +512,11 @@
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
                 <span class="font-semibold text-gray-800">server-name</span>
-                <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                </svg>
+                <button onclick={ServerOptions} title="Server Options">
+                    <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
             </div>
         </div>
 
@@ -303,15 +528,17 @@
                     </svg>
                     Text Channels
                 </button>
-                <button 
-                    onclick={() => open = !open}
-                    aria-label="Create Channel"
-                    class="p-1 hover:bg-pink-100/60 rounded text-gray-600 hover:text-gray-800"
-                >
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
-                    </svg>
-                </button>
+                {#if user_permissions?.["Manage channels"]}
+                    <button 
+                        onclick={() => open = !open}
+                        aria-label="Create Channel"
+                        class="p-1 hover:bg-pink-100/60 rounded text-gray-600 hover:text-gray-800"
+                    >
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                {/if}
             </div>
 
             <div class="mt-1 space-y-0.5">
@@ -324,21 +551,23 @@
                             <span style="color: {channel.color || '#a855f7'}" class="group-hover/item:brightness-110">#</span>
                             <span class="text-sm font-medium">{channel.channel_name}</span>
                         </button>
-                        <button 
-                            onclick={ () => {
-                                editing_channel.state = !editing_channel.state;
-                                editing_channel.id = channel.channel_id;
-                                editing_channel.name = channel.channel_name;
-                                editing_channel.color = channel.color;
-                                editing_channel.role = channel.channel_role;
-                            }}
-                            class="p-1.5 opacity-0 group-hover/item:opacity-100 hover:bg-pink-100/60 rounded transition-opacity"
-                            aria-label="Edit channel"
-                        >
-                            <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
-                            </svg>
-                        </button>
+                        {#if user_permissions?.["Manage channels"]}
+                            <button 
+                                onclick={ () => {
+                                    editing_channel.state = !editing_channel.state;
+                                    editing_channel.id = channel.channel_id;
+                                    editing_channel.name = channel.channel_name;
+                                    editing_channel.color = channel.color;
+                                    editing_channel.role = channel.channel_role;
+                                }}
+                                class="p-1.5 opacity-0 group-hover/item:opacity-100 hover:bg-pink-100/60 rounded transition-opacity"
+                                aria-label="Edit channel"
+                            >
+                                <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        {/if}
                     </div>
                 {/each}
             </div>
@@ -350,6 +579,38 @@
     <div class="w-60 bg-[#f7f3f9] border-l border-pink-200/50 flex flex-col flex-shrink-0">
         <div class="p-4">
             <h3 class="text-sm font-semibold text-gray-700">Members</h3>
+
+            {#each users as user}
+                <div class="user-container">
+                    <button onclick={() => ShowProfile(user.user_id)}>{user.name}</button>
+                </div>
+            {/each}
+            
+            {#if showing_profile.state}
+                <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50" onclick={() => showing_profile.state = false} onkeydown={(e) => {e.key === 'Escape'; showing_profile.state = false}} role="button" tabindex="0">
+                    <div class="profile bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl p-8 shadow-2xl border border-pink-200/50 flex flex-col items-center" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="dialog" tabindex="-1" style="width: 440px;">
+                        <h1>{showing_profile.display_name}</h1>
+                        <h5>{showing_profile.name}</h5>
+                        
+                        <p>{showing_profile.note}</p>
+
+                        <div class="roles">
+                            <select class="w-20" id="role">
+                                {#each roles as role}
+                                    {#if !showing_profile.roles.some(obj => obj.id === role.id)}
+                                        <option value={role.id} style={`color: ${role.color}`}>{role.role_name}</option>
+                                    {/if}
+                                {/each}
+                            </select>
+                            <button onclick={() => HandleAddingRoles(showing_profile.user_id)}>Add Role</button>
+                            {#each showing_profile.roles as role}
+                                <br>
+                                <button onclick={() => HandleRemovingRoles(showing_profile.user_id, role.id)}>{role.role_name}</button>
+                            {/each}
+                        </div>
+                    </div>
+                </div>
+            {/if}
         </div>
     </div>
 </div>
@@ -412,3 +673,22 @@
         </div>
     </div>
 {/if}
+
+<style>
+    .profile {
+        height: 400px;
+        width: 200px;
+
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        
+        background-color: #999;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        transform: translate(-50%, -50%);
+    }
+</style>

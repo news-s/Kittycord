@@ -1,5 +1,7 @@
 <script>    
+    import { profile } from "../../../../stores";
     import { page } from "$app/stores";
+	import { onDestroy } from "svelte";
 
     const server_id = $page.params.id;
 
@@ -8,6 +10,8 @@
 
     let server_link = "";
     let updated_server_link = $state(server_link);
+
+    let user_permissions = $state(null);
 
     async function EditServerName() {
         updated_server_name = updated_server_name.trim();
@@ -100,15 +104,58 @@
         window.location.href = "/app/main";
     }
 
+    async function GetUserPermissions(user_id) {
+        try {
+            const res = await fetch(`http://localhost:8000/permissions/${user_id}/${server_id}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            return res.json();
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    //getting profile;
+    const unsubscribe = profile.subscribe(async () => {
+        let tries = 0;
+        if($profile === null){
+            while(tries < 3){
+                await sleep(1000);
+                
+                if($profile !== null) break;
+    
+                tries += 1;
+            }
+
+            if(tries >= 3)return;
+        };
+
+        user_permissions = await GetUserPermissions($profile.user_id);
+    });
+
+    onDestroy(unsubscribe);
 </script>
 <div class="options-wrapper">
     <form>
         <input type="text" bind:value={updated_server_name} placeholder="Name" />
         <input type="text" bind:value={updated_server_link} placeholder="Link"/>
-        <input type="submit" onclick={UpdateServer} value="Update"/>
+        {#if user_permissions?.["Manage server"]}
+            <input type="submit" onclick={UpdateServer} value="Update"/>
+        {/if}
     </form>
 
-    <button onclick={DeleteServer}>Delete</button>
+    {#if user_permissions?.["Manage server"]}
+        <button onclick={DeleteServer}>Delete</button>
+    {/if}
 </div>
 
 <style>
