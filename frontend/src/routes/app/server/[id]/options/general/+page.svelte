@@ -2,6 +2,7 @@
     import { profile } from "../../../../stores";
     import { page } from "$app/stores";
 	import { onDestroy, onMount } from "svelte";
+    import { FetchData } from "$lib/Fetch";
 
     const server_id = $page.params.id;
 
@@ -20,27 +21,15 @@
         const token = localStorage.getItem("token");
         server_name = updated_server_name
 
-        try {
-            const res = await fetch("http://localhost:8000/edit_server/name", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    token: token,
-                    server_id: server_id,
-                    new_val: server_name
-                })
-            });
-
-            if (!res.ok) {
-                throw new Error(`HTTP error! Status: ${res.status}`);
+        FetchData(
+            "edit_server/name", 
+            "PUT",
+            {
+                token: token,
+                server_id: server_id,
+                new_val: server_name
             }
-
-            return res.json();
-        } catch (err) {
-            console.error("Fetch error:", err);
-        }
+        );
     }
 
     async function EditServerLink() {
@@ -50,27 +39,15 @@
         const token = localStorage.getItem("token");
         server_link = updated_server_link;
 
-        try {
-            const res = await fetch("http://localhost:8000/edit_server/link", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    token: token,
-                    server_id: server_id,
-                    new_val: server_link
-                })
-            });
-
-            if (!res.ok) {
-                throw new Error(`HTTP error! Status: ${res.status}`);
+        FetchData(
+            "edit_server/link", 
+            "PUT",
+            {
+                token: token,
+                server_id: server_id,
+                new_val: server_link
             }
-
-            return res.json();
-        } catch (err) {
-            console.error("Fetch error:", err);
-        }
+        );
     }
 
     function UpdateServer() {
@@ -81,46 +58,32 @@
     async function DeleteServer() {
         const token = localStorage.getItem("token");
 
-        try {
-            const res = await fetch("http://localhost:8000/remove_server", {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    token: token,
-                    server_id: server_id
-                })
-            });
-
-            if (!res.ok) {
-                throw new Error(`HTTP error! Status: ${res.status}`);
+        FetchData(
+            "edit_server/remove_server", 
+            "PATCH",
+            {
+                token: token,
+                server_id: server_id,
             }
-
-        } catch (err) {
-            console.error("Fetch error:", err);
-        }
+        );
 
         window.location.href = "/app/main";
     }
 
-    async function GetUserPermissions(user_id) {
-        try {
-            const res = await fetch(`http://localhost:8000/permissions/${user_id}/${server_id}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                }
-            });
-
-            if (!res.ok) {
-                throw new Error(`HTTP error! Status: ${res.status}`);
+    
+    async function LeaveServer() {
+        const token = localStorage.getItem("token");
+        
+        FetchData(
+            `permissions/leave`,
+            "PUT",
+            {
+                token: token,
+                server_id: server_id
             }
-
-            return res.json();
-        } catch (err) {
-            console.error("Fetch error:", err);
-        }
+        );
+        
+        window.location.href("/app/main");
     }
 
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -135,70 +98,23 @@
     
                 tries += 1;
             }
-
+    
             if(tries >= 3)return;
         };
-
-        user_permissions = await GetUserPermissions($profile.user_id);
-    });
-
-    async function GetServerName() {
-        try {
-            const res = await fetch(`http://localhost:8000/server_name/${server_id}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                }
-            });
-
-            if (!res.ok) {
-                throw new Error(`HTTP error! Status: ${res.status}`);
-            }
-
-            return await res.json();
-        } catch (err) {
-            console.error("Fetch error:", err);
-        }
-    }
-
-    async function LeaveServer() {
-        const token = localStorage.getItem("token");
-
-        if(token === undefined)return;
         
-        try {
-            const res = await fetch(`http://localhost:8000/leave`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    token: token,
-                    server_id: server_id
-                })
-            });
-
-            if (!res.ok) {
-                throw new Error(`HTTP error! Status: ${res.status}`);
-            }
-        } catch (err) {
-            console.error("Fetch error:", err);
-        }
-
-        window.location.href("/app/main");
-    }
+        user_permissions = await FetchData(`permissions/${$profile.user_id}/${server_id}/`, "GET");
+    });
+    onDestroy(unsubscribe);
 
     onMount(async () => {
-        const data = await GetServerName();
-
+        const data = await FetchData(`permissions/server_name/${server_id}/`, "GET");
+        
         server_name = data.server_name
         updated_server_name = data.server_name
         
         server_link = data.server_link
         updated_server_link = data.server_link
     });
-
-    onDestroy(unsubscribe);
 </script>
 
 <div class="flex flex-col items-center justify-center min-h-[80vh] w-full">

@@ -45,7 +45,7 @@
     });
 </script>
 
-{#if status === "success"}
+{#if status == "success"}
     <div>
         <h1>Thanks for joining</h1>
         <a href="/app/main">Open Kittycord</a>

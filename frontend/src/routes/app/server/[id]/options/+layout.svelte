@@ -1,12 +1,12 @@
 <script>
 	import { onDestroy } from "svelte";
-    import { load_server_bar, profile } from "../../../stores";
+    import { load_layout, profile } from "../../../stores";
     import { page } from "$app/stores";
 
     const server_id = $page.params.id;
     const { children } = $props();
 
-    load_server_bar.set(false);
+    load_layout.set(false);
 
     let user_permissions = $state(null);
 
