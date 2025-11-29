@@ -106,6 +106,7 @@
     });
     onDestroy(unsubscribe);
 
+
     onMount(async () => {
         const data = await FetchData(`permissions/server_name/${server_id}/`, "GET");
         

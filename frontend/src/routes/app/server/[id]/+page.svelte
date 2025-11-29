@@ -1,4 +1,4 @@
- <script>
+<script>
     import { onDestroy, onMount } from "svelte";
 
     import { profile, socket, load_layout } from "../../stores.js";
