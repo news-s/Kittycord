@@ -5,7 +5,7 @@ from pydantic.v1.typing import convert_generics
 from auth_token import verify_token
 from utils import can_manage_role, can_manage_user, get_highest_role, has_permission, is_member
 from database.permissions import convert_to_permissions
-from database.roles import add_role_to_user, change_role_name, create_role, delete_role, get_role_by_id, get_role_color, get_roles_in_server, get_server_id_by_role, get_user_roles_in_server, reorder_roles, set_role_permissions, change_role_color, remove_role_from_user
+from database.roles import add_role_to_user, change_role_name, create_role, delete_role, get_role_by_id, get_role_color, get_role_order, get_roles_in_server, get_server_id_by_role, get_user_roles_in_server, reorder_roles, set_role_permissions, change_role_color, remove_role_from_user
 from database.permissions import permissions
 from routes.ws import broadcast
 
@@ -182,6 +182,16 @@ async def highest_role_color(user_id: int, server_id: int) -> str:
         return "#000000"
     
     return res["color"]
+
+@router.get("/role_order/{server_id}", status_code=200)
+async def role_order(server_id: int):
+    res = get_role_order(server_id)
+    
+    if res["status"] == "error":
+        raise HTTPException(status_code=404, detail="Server not found")
+    
+    return res["role_order"]
+
 
 @router.get("/all_user_roles/{user_id}/{server_id}")
 async def all_roles(user_id: int, server_id: int):
