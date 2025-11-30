@@ -1,9 +1,11 @@
 <script>
 	import { onDestroy } from "svelte";
 	import { profile } from "../routes/app/stores";
+    import { FetchData } from "./Fetch";
 
     let open = $state(false);
     let servers = $state([]);
+    let error_message = $state("");
 
     async function CreateServer(token, server_name) {
         try {
@@ -30,17 +32,42 @@
     }
 
     async function HandleCreatingServer() {
-        open = false;
-        
+        error_message = "";
+
         const token = localStorage.getItem('token');
         const input = document.getElementById('server-name');
         const server_name = input.value.trim();
 
-        if(!server_name)return;
+        if(server_name.length > 20) {
+            error_message = "Za dluga nazwa servera";
+            return;
+        }
 
-        const data = await CreateServer(token, server_name);
+        const result = await FetchData(
+            "add_server",
+            "POST",
+            {
+                token: token,
+                server_name: server_name,
+                invite_link: server_name
+            }
+        );
+
+        if(result == 409) {
+            error_message = "Server o takim linku juz istnieje";
+            return;
+        }
+        if(result == "invalid input") {
+            error_message = "Nie poprawny input";
+            return;
+        }
+        if(!result?.server_id)return;
+        
+        open = false;
+
         if($profile === null)return;
-        profile.update(object => ({...object, servers: [...object.servers, data?.server_id]}));
+        profile.update(object => ({...object, servers: [...object.servers, result.server_id]}));
+
     }
 </script>
 
@@ -71,6 +98,7 @@
     <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl p-8 w-96 shadow-2xl border border-pink-200/50">
             <h2 class="text-2xl font-semibold text-purple-900 mb-6">Create Server</h2>
+            <p class="text-red-600">{error_message}</p>
             <input 
                 type="text" 
                 placeholder="Server Name" 

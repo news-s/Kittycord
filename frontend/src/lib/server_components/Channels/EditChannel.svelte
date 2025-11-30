@@ -1,7 +1,7 @@
 <script>
     import { FetchData } from "$lib/Fetch";
     
-    let { editing_channel } = $props();
+    let { editing_channel, roles } = $props();
 
     async function EditChannelName() {
         const token = localStorage.getItem("token");
@@ -53,12 +53,12 @@
         const token = localStorage.getItem("token");
 
         const result = FetchData(
-            "edit_channel/role", 
+            "edit_channel/role_needed", 
             "PUT", 
             {
                 token: token, 
                 channel_id: editing_channel.id,
-                new_val: editing_channel.role
+                new_val: String(editing_channel.role)
             }
         );
 
@@ -71,6 +71,20 @@
         EditChannelName();
         EditChannelColor();
         EditChannelRole();
+    }
+
+    async function DelteChannel() {
+        editing_channel.state = false;
+        const token = localStorage.getItem("token");
+
+        const result = await FetchData(
+            "remove_channel", 
+            "PATCH", 
+            {
+                token: token, 
+                channel_id: editing_channel.id
+            }
+        )
     }
 </script>
 
@@ -92,27 +106,24 @@
                 class="px-4 py-3 rounded-xl bg-white/80 border border-pink-200 text-gray-800 placeholder-gray-400 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-300" 
                 style="width: 376px;"
             />
-            <input 
+            <select 
                 type="text" 
                 placeholder="Channel Role" 
                 bind:value={editing_channel.role}
                 class="px-4 py-3 rounded-xl bg-white/80 border border-pink-200 text-gray-800 placeholder-gray-400 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-300" 
                 style="width: 376px;"
-            />
+            >
+                {#each roles as role}
+                    <option value={role.id}>{role.role_name}</option>
+                {/each}
+            </select>
             <div class="flex gap-3" style="width: 376px;">
                 <button 
-                    onclick={() => HandleEditingChannel()}
+                    onclick={HandleEditingChannel}
                     class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold"
                 >Save</button>
                 <button 
-                    onclick={() => FetchData(
-                        "remove_channel", 
-                        "PATCH", 
-                        {
-                            token: token, 
-                            channel_id: editing_channel.id
-                        }
-                    )}
+                    onclick={DelteChannel}
                     class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold"
                 >Delete</button>
             </div>

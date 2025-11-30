@@ -66,6 +66,18 @@
 
         showing_profile.roles = showing_profile.roles.filter(role => role.id !== role_id);
     }
+
+    function IsLight(hex) {
+        hex = hex.replace("#", "");
+
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+
+        return luminance > 186;
+    }
 </script>
 
 <div class="w-60 bg-[#f7f3f9] border-l border-pink-200/50 flex flex-col flex-shrink-0">
@@ -102,7 +114,12 @@
                             <select class="w-32 px-2 py-1 rounded-xl border border-pink-200 bg-white text-purple-800 font-semibold" id="role">
                                 {#each roles as role}
                                     {#if !showing_profile.roles.some(obj => obj.id === role.id)}
-                                        <option value={role.id} style={`color: ${role.color}`}>{role.role_name}</option>
+                                        {console.log(IsLight(role.color))}
+                                        {#if IsLight(role.color)}
+                                            <option value={role.id} style={`color: ${role.color}; background-color: #333`}>{role.role_name}</option>
+                                        {:else}
+                                            <option value={role.id} style={`color: ${role.color}`}>{role.role_name}</option>
+                                        {/if}
                                     {/if}
                                 {/each}
                             </select>

@@ -2,6 +2,7 @@
 	import { onMount } from "svelte";   
 
     let { socket, messages, user_id } = $props();
+    let error_message = $state("");
 
     async function SendMessage(event) {
         event.preventDefault();
@@ -11,6 +12,10 @@
         const input = document.querySelector('.text-input');
         const message = input.value.trim();
 
+        if(message.length > 250) {
+            error_message = "Wiadomosc jest za dluga";
+            return;
+        }
         if(!message) return;
 
         $socket.send(JSON.stringify({
@@ -18,7 +23,7 @@
             content: message
         }));
 
-        event.target.reset()
+        event.target.reset();
     }
 
     onMount(async () => {
@@ -51,8 +56,8 @@
                 </svg>
             </button>
         </div>
-        {#if errorMsg}
-            <div class="absolute left-0 -bottom-8 w-full text-center text-sm text-red-500 font-semibold">{errorMsg}</div>
+        {#if error_message}
+            <div class="absolute left-0 -bottom-8 w-full text-center text-sm text-red-500 font-semibold">{error_message}</div>
         {/if}
     </form>
 </div>

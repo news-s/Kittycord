@@ -5,9 +5,9 @@
     import { page } from "$app/stores";
 
     import { FetchData } from "$lib/Fetch.js";
-	import Chat from "$lib/server_components/Chat/Chat.svelte";
+	import Chat from "$lib/server_components/chat/Chat.svelte";
 	import Members from "$lib/server_components/Members.svelte";
-	import Channels from "$lib/server_components/Channels/Channels.svelte";
+	import Channels from "$lib/server_components/channels/Channels.svelte";
 
     let token = null;
 
@@ -18,6 +18,7 @@
     let server_name = $state("Server Name");
     let channel_name = $state("Channel Name");    
     let user_permissions = $state([]);
+    let roles = $state([]);
     
     const page_subscription = page.subscribe(p => {
         server_id = p.params.id
@@ -32,10 +33,23 @@
     
     load_layout.set(true);
 
+    async function SwitchChannel(channel_id) {
+        if($socket?.readyState !== WebSocket.OPEN || !channel_id)return;
+
+        $socket.send(JSON.stringify({
+            type: "channel",
+            content: channel_id
+        }));
+    }
+
     async function message(event){
         const data = JSON.parse(event.data);
-        
-        if(data.type === "load_server") {
+
+        if(data.type === "add_role") {
+            const role = await FetchData(`role/${data.role_id}/${server_id}/`, "GET");
+            roles.push(role);
+        }
+        else if(data.type === "load_server") {
             server_name = data.server_name
             channel_name = data.channels[0]?.channel_name.channel_name
 
@@ -43,10 +57,13 @@
             messages = data.messages;
 
             users = await FetchData(`get_members/${server_id}/`, "GET");
+            roles = await FetchData(`all_user_roles/${$profile?.user_id}/${server_id}/`, "GET");
         }
         else if(data.type === "load_channel") {
             messages = data.messages;
             channel_name = data.channel_name.channel_name
+
+            roles = await FetchData(`all_user_roles/${$profile?.user_id}/`, "GET");
         }
         else if(data.type === "new_message")  messages.push(data);
         else if(data.type === "add_channel") channels.push(data);
@@ -76,7 +93,10 @@
 
                 if(data.type === "edit_channel_name") channel.channel_name = data.new_content;
                 else if(data.type === "edit_channel_color")channel.color = data.new_content;
-                else if(data.type === "edit_channel_role_needed")channel.role = data.new_content;
+                else if(data.type === "edit_channel_role_needed") {
+                    channel.role_needed = data.new_content;
+                    roles = await FetchData(`all_user_roles/${$profile?.user_id}/`);
+                };
 
                 break;
             }
@@ -146,7 +166,7 @@
             </div>
         </div>
         
-        <Channels {socket} {server_id} {channels} {user_permissions}/>
+        <Channels {socket} {server_id} {channels} {user_permissions} {roles}/>
     </div>
 
     <Chat bind:messages={messages} user_id={$profile?.user_id} {server_id} {channel_name} {user_permissions}/>
