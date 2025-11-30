@@ -11,14 +11,12 @@ SERVER_PERM = "Manage server"
 
 router = APIRouter()
 
-# TODO Server name
-
 class JoinServer(BaseModel):
     token: str
     link: str
 
 @router.put("/join", status_code=200)
-async def join(data: JoinServer) -> int:
+async def join(data: JoinServer) -> str:
     user_id = verify_token(data.token)
     res = get_server_by_link(data.link)
 
@@ -50,7 +48,7 @@ async def join(data: JoinServer) -> int:
         "server_id": server_id,
     })
 
-    return server_id
+    return res["status"]
 
 class LeaveServer(BaseModel):
     token: str
