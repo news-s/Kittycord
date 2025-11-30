@@ -1,0 +1,42 @@
+<script>
+    import { page } from '$app/stores';
+    import cat404 from '$lib/assets/404 cat.png';
+</script>
+
+<div class="min-h-screen flex items-center justify-center p-4" style="border: 0 solid #E5E7EB; background: linear-gradient(45deg, #F8E7FF 50%, #E7F3FF 85.36%, #FFF0F8 120.71%);">
+<div class="max-w-2xl w-full text-center">
+        <div class="flex justify-center mb-8">
+            <div class="bg-pink-200/40 rounded-3xl p-8 inline-block">
+                <img src={cat404} alt="404 Cat" class="w-80 h-auto" />
+            </div>
+        </div>
+
+        <h1 class="text-9xl font-normal mb-4" style="color: #F472B6; font-family: Nunito;">
+            404
+        </h1>
+
+        <h2 class="text-3xl font-semibold mb-4" style="color: #1F2937; font-family: Nunito;">
+            Ups! Zgubiłeś się...
+        </h2>
+
+        <p class="text-lg mb-8" style="color: #4B5563; font-family: Nunito;">
+            Wygląda na to, że ta strona nie istnieje lub została przeniesiona.
+        </p>
+
+        <a href="/" class="inline-flex items-center gap-2 px-8 py-4 text-white font-semibold transition" 
+           style="border-radius: 9999px; border: 0 solid #E5E7EB; background: linear-gradient(90deg, #F472B6 0%, #C084FC 50%, #60A5FA 100%); box-shadow: 0 25px 50px 0 rgba(0, 0, 0, 0.25); text-decoration: none; font-family: Nunito;">
+            <svg width="23" height="20" viewBox="0 0 23 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clip-path="url(#clip0_20_414)">
+                    <path d="M22.4922 9.98047C22.4922 10.6836 21.9062 11.2344 21.2422 11.2344H19.9922L20.0195 17.4922C20.0195 17.5977 20.0117 17.7031 20 17.8086V18.4375C20 19.3008 19.3008 20 18.4375 20H17.8125C17.7695 20 17.7266 20 17.6836 19.9961C17.6289 20 17.5742 20 17.5195 20H16.25H15.3125C14.4492 20 13.75 19.3008 13.75 18.4375V17.5V15C13.75 14.3086 13.1914 13.75 12.5 13.75H10C9.30859 13.75 8.75 14.3086 8.75 15V17.5V18.4375C8.75 19.3008 8.05078 20 7.1875 20H6.25H5.00391C4.94531 20 4.88672 19.9961 4.82812 19.9922C4.78125 19.9961 4.73438 20 4.6875 20H4.0625C3.19922 20 2.5 19.3008 2.5 18.4375V14.0625C2.5 14.0273 2.5 13.9883 2.50391 13.9531V11.2344H1.25C0.546875 11.2344 0 10.6875 0 9.98047C0 9.62891 0.117188 9.31641 0.390625 9.04297L10.4062 0.3125C10.6797 0.0390625 10.9922 0 11.2656 0C11.5391 0 11.8516 0.078125 12.0859 0.273438L22.0625 9.04297C22.375 9.31641 22.5312 9.62891 22.4922 9.98047Z" fill="white"/>
+                </g>
+                <defs>
+                    <clipPath id="clip0_20_414">
+                    <path d="M0 0H22.5V20H0V0Z" fill="white"/>
+                    </clipPath>
+                </defs>
+            </svg>
+
+            Wróć na stronę główną
+        </a>
+    </div>
+</div>
