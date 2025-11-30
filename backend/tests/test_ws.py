@@ -1,0 +1,143 @@
+from database.friends import add_friend
+from database.login import create_user, verify_user
+from database.servers import create_server
+from database.channels import create_channel
+
+from auth_token import create_access_token
+
+def test_send_message(client, db):
+    create_user("test", "pass")
+    user_id = verify_user("test", "pass")
+    res = create_server(user_id, "testname", "testlink")
+    channel_id = create_channel(res["server_id"], "name")["channel_id"]
+    token = create_access_token({"id": user_id})
+
+
+    with client.websocket_connect(f"/ws?token={token}") as ws:
+        ws.receive_json()
+
+        ws.send_json({"type": "channel", "content": channel_id})
+        ws.receive_json()
+
+        ws.send_json({"type": "message", "content": "test"})
+        ws.receive_json()
+        ws.receive_json()
+
+        ws.send_json({"type": "channel", "content": channel_id})
+        
+        res = ws.receive_json()
+
+        assert res["messages"][0]["content"] == "test"
+        
+
+def test_change_channel(client, db):
+    create_user("test", "pass")
+    user_id = verify_user("test", "pass")
+    res = create_server(user_id, "testname", "testlink")
+    channel_id = create_channel(res["server_id"], "name")["channel_id"]
+    token = create_access_token({"id": user_id})
+
+    with client.websocket_connect(f"/ws?token={token}") as ws:
+        ws.receive_json()
+
+        ws.send_json({"type": "channel", "content": channel_id})
+
+        res = ws.receive_json()
+
+        assert res["status"] == 200
+        assert res["messages"] == []
+
+def test_change_server(client, db):
+    create_user("test", "pass")
+    user_id = verify_user("test", "pass")
+    res = create_server(user_id, "name", "link")
+    create_channel(res["server_id"], "name")
+    token = create_access_token({"id": user_id})
+
+    with client.websocket_connect(f"/ws?token={token}") as ws:
+        ws.receive_json()
+
+        ws.send_json({"type": "server", "content": res["server_id"]})
+
+        res = ws.receive_json()
+
+        assert res["status"] == 200
+        assert len(res["channels"]) == 1
+        assert res["channels"][0]["channel_name"] == "name"
+        assert res["messages"] == []
+
+
+def test_set_status(client, db):
+    create_user("test", "pass")
+    user_id = verify_user("test", "pass")
+    token = create_access_token({"id": user_id})
+
+    with client.websocket_connect(f"/ws?token={token}") as ws:
+        ws.receive_json()
+
+        ws.send_json({"type": "status", "content": "Online"})
+        res = ws.receive_json()
+
+        assert res["status"] == 400
+
+        ws.send_json({"type": "status", "content": "Offline"})
+        res = ws.receive_json()
+
+        assert res["status"] == 200
+
+        ws.send_json({"type": "status", "content": "Offline"})
+        res = ws.receive_json()
+
+        assert res["status"] == 400
+
+        ws.send_json({"type": "status", "content": "Online"})
+        res = ws.receive_json()
+
+        assert res["status"] == 200
+
+
+def test_send_dm(client, db):
+    create_user("name1", "pass")
+    user_id1 = verify_user("name1", "pass")
+    create_user("name2", "pass")
+    user_id2 = verify_user("name2", "pass")
+    add_friend(db, user_id1, user_id2)
+    add_friend(db, user_id2, user_id1)
+    
+    token = create_access_token({"id": user_id1})
+
+    with client.websocket_connect(f"/ws?token={token}") as ws:
+        ws.receive_json()
+
+        ws.send_json({"type": "load_dms", "content": user_id2})
+        ws.receive_json()
+
+        ws.send_json({"type": "dm", "content": "test"})
+        ws.receive_json()
+        ws.receive_json()
+
+        ws.send_json({"type": "load_dms", "content": user_id2})
+        res = ws.receive_json()
+
+        assert res["messages"][0]["author_id"] == user_id1
+        assert res["messages"][0]["reciever_id"] == user_id2
+        assert res["messages"][0]["content"] == "test"
+
+
+def test_load_dms(client, db):
+    create_user("name1", "pass")
+    user_id1 = verify_user("name1", "pass")
+    create_user("name2", "pass")
+    user_id2 = verify_user("name2", "pass")
+    add_friend(db, user_id1, user_id2)
+    add_friend(db, user_id2, user_id1)
+    
+    token = create_access_token({"id": user_id1})
+
+    with client.websocket_connect(f"/ws?token={token}") as ws:
+        ws.receive_json()
+
+        ws.send_json({"type": "load_dms", "content": user_id2})
+        res = ws.receive_json()
+
+        assert res["messages"] == []

@@ -1,0 +1,66 @@
+import typing
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+
+from auth_token import verify_token
+from database.friends import accept_friend, get_friend_requests, invite_friend, reject_friend, get_friends
+
+
+router = APIRouter()
+
+
+class FriendRequest(BaseModel):
+    token: str
+    name: str
+
+class TokenData(BaseModel):
+    token: str
+
+@router.post("/send_friend_req", status_code=201)
+async def send_friend_req(data: FriendRequest) -> int:
+    user_id = verify_token(data.token)
+
+    res = invite_friend(user_id, data.name)
+    
+    if res["status"] == "error":
+        raise HTTPException(status_code=418, detail="Already friends or already sent request")
+
+    return res["friend_request_id"]
+
+
+@router.put("/accept_friend_req", status_code=200)
+async def accept_friend_req(data: FriendRequest) -> str:
+    user_id = verify_token(data.token)
+    
+    res = accept_friend(user_id, data.name)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=400, detail="No friend request found")
+
+    return res["status"]
+
+@router.patch("/reject_friend_req", status_code=200)
+async def reject_friend_req(data: FriendRequest) -> str:
+    user_id = verify_token(data.token)
+    
+    res = reject_friend(user_id, data.name)
+
+    if res["status"] == "error":
+        raise HTTPException(status_code=400, detail="No friend request found")
+
+    return res["status"]
+
+@router.post("/get_friends", status_code=200)
+async def test_get_friends(token: TokenData) -> list[str]:
+    user_id = verify_token(token.token)
+    return get_friends(user_id)["friends"]
+
+class GetFriendRequests(BaseModel):
+    token: str
+
+
+@router.post("/get_friend_reqs", status_code=200)
+async def get_friend_reqs(data: GetFriendRequests):
+    user_id = verify_token(data.token)
+
+    return get_friend_requests(user_id)["friend_requests"]
