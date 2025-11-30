@@ -1,32 +1,64 @@
 <script>
-    const friends = [
-        { name: 'xxxxxxxxxx', status: 'Gra w Minecraft', online: true },
-        { name: 'xxxxxxxxxx', status: 'Gra w Minecraft', online: true },
-        { name: 'xxxxxxxxxx', status: 'Gra w Minecraft', online: true },
-        { name: 'xxxxxxxxxx', status: 'Gra w Minecraft', online: true }
-    ];
-    const privateMessages = [
-        { name: 'xxxxxxx' },
-        { name: 'xxxxxxx' },
-        { name: 'xxxxxxx' },
-        { name: 'xxxxxxx' }
-    ];
-    const activities = [
-        { name: 'xxxxxxx', game: 'Genshin Impact', time: '1h' },
-        { name: 'xxxxxxx', game: 'Valorant', time: '45m' }
-    ];
+	import { json } from '@sveltejs/kit';
+    let friends = $state([]);
+    let friend_req = $state([]);
+import { onMount } from 'svelte';
+	import { messages } from './dm/store';
+onMount(() => {
+    const token = localStorage.getItem("token");
+    fetch('http://localhost:8000/get_friends', {
+        method: "POST",
+        headers: {
+            'Content-Type': "application/json"
+        },
+        body: JSON.stringify({token: token})
+    })
+    .then(response => response.json())
+    .then(data => {
+        friends = data;
+    })
+    .catch(error => console.error(error));
+    fetch('http://localhost:8000/get_friend_reqs', {
+        method: "POST",
+        headers: {
+            'Content-Type': "application/json"
+        },
+        body: JSON.stringify({token: token})
+    })
+    .then(response => response.json())
+    .then(data => {
+        friend_req = data;
+    })
+    .catch(error => console.error(error))
+});
+
+function add_friend(friend_tag){
+    const token = localStorage.getItem("token");
+    fetch('http://localhost:8000/send_friend_req', {
+        method: "POST",
+        headers: {
+            'Content-Type': "application/json"
+        },
+        body: JSON.stringify({token:token, name:friend_tag})
+    })
+    .then(response => {
+        isopen = !isopen
+    })
+}
+let isopen = $state(false);
+let friend_tag = $state("");
 </script>
 
 <div class="flex w-screen h-screen bg-gradient-to-br from-pink-50 to-purple-50">
     <div class="flex flex-col w-[242px] bg-white/30 p-4 gap-4">
         <div class="font-semibold text-lg mb-2">Znajomi</div>
         <div class="flex flex-col gap-2">
-            {#each privateMessages as msg}
+            <!-- {#each privateMessages as msg}
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-full bg-black"></div>
                     <span class="text-sm">{msg.name}</span>
                 </div>
-            {/each}
+            {/each} -->
         </div>
     </div>
 
@@ -35,18 +67,33 @@
             <div class="font-semibold text-lg">Znajomi</div>
             <button class="px-4 py-1 rounded-xl bg-white/60 text-gray-700 font-semibold shadow">Wszystkie</button>
             <button class="px-4 py-1 rounded-xl bg-white/60 text-gray-700 font-semibold shadow">Online</button>
-            <button class="px-4 py-1 rounded-xl bg-blue-100 text-blue-700 font-semibold shadow">Dodaj znajomego</button>
+            <button onclick={() => isopen = !isopen} type="toggle" class="px-4 py-1 rounded-xl bg-blue-100 text-blue-700 font-semibold shadow">Dodaj znajomego</button>
+            {#if isopen}
+            <input type="text" bind:value={friend_tag}>
+            <button onclick={() => add_friend(friend_tag)}>Zatwierdź</button>
+            {/if}
         </div>
-        <div class="text-xs text-gray-500 mb-2">ONLINE — 12</div>
+        <div>
+        {#if friend_req.length > 0}
+            <div>Zaproszenia</div>
+        {/if}
+        {#each friend_req as fr}
+            <span>{fr.name} - <button onclick={() => {accept_friend_request(fr.name)}}>Accept</button></span>
+        {/each}
+    </div>
+        <div class="text-xs text-gray-500 mb-2">Znajomi — {friends.length}</div>
         <div class="flex flex-col gap-4">
-            {#each friends as friend}
+            {#if friends.length === 0}
+                    <span class="">Kitty nie ma jeszcze żadnych przyjaciół</span>
+                    {:else}
+                    {#each friends as friend}
                 <div class="flex items-center bg-white/70 rounded-xl px-6 py-4 shadow gap-4">
                     <div class="w-10 h-10 rounded-full bg-black relative">
                         <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></span>
                     </div>
                     <div class="flex-1">
-                        <div class="font-semibold text-base">{friend.name}</div>
-                        <div class="text-xs text-gray-500">{friend.status}</div>
+                        <div class="font-semibold text-base">{friend}</div>
+                        <!-- <div class="text-xs text-gray-500">{friend.status}</div> -->
                     </div>
                     <div class="flex gap-2">
                         <button aria-label="Message" class="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center shadow">
@@ -65,15 +112,16 @@
                             </svg>
                         </button>
                     </div>
-                </div>
+                </div>                
             {/each}
+            {/if}
         </div>
     </main>
 
     <aside class="w-64 bg-white/20 p-4 flex flex-col gap-4">
         <div class="font-semibold text-lg mb-2">Aktywne teraz</div>
         <div class="flex flex-col gap-2">
-            {#each activities as act}
+            <!-- {#each activities as act}
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-full bg-black"></div>
                     <div>
@@ -82,7 +130,7 @@
                     </div>
                     <div class="ml-auto text-xs text-gray-400">{act.time}</div>
                 </div>
-            {/each}
+            {/each} -->
         </div>
     </aside>
 </div>
