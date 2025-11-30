@@ -69,8 +69,20 @@ let friend_tag = $state("");
             <button class="px-4 py-1 rounded-xl bg-white/60 text-gray-700 font-semibold shadow">Online</button>
             <button onclick={() => isopen = !isopen} type="toggle" class="px-4 py-1 rounded-xl bg-blue-100 text-blue-700 font-semibold shadow">Dodaj znajomego</button>
             {#if isopen}
-            <input type="text" bind:value={friend_tag}>
-            <button onclick={() => add_friend(friend_tag)}>Zatwierdź</button>
+            <div class="flex items-center gap-2 bg-white/70">
+                <input
+                    type="text"
+                    bind:value={friend_tag}
+                    placeholder=""
+                    class="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white/90 text-gray-700 text-sm w-48"
+                >
+                <button
+                    onclick={() => add_friend(friend_tag)}
+                    class="px-4 py-2 rounded-lg bg-blue-100 text-blue-700 font-semibold shadow hover:bg-blue-200 transition"
+                >
+                    Zatwierdź
+                </button>
+            </div>
             {/if}
         </div>
         <div>
@@ -80,7 +92,7 @@ let friend_tag = $state("");
         {#each friend_req as fr}
             <span>{fr.name} - <button onclick={() => {accept_friend_request(fr.name)}}>Accept</button></span>
         {/each}
-    </div>
+        </div>
         <div class="text-xs text-gray-500 mb-2">Znajomi — {friends.length}</div>
         <div class="flex flex-col gap-4">
             {#if friends.length === 0}
