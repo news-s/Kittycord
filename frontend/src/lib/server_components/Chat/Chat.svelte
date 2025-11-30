@@ -80,7 +80,7 @@
                             class="w-full px-3 py-2 rounded-lg bg-white/80 border border-purple-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
                         >
                     {:else}
-                        <p class="text-gray-700 text-base leading-relaxed">{message.content}</p>
+                        <p class="text-gray-700 text-base leading-relaxed break-words whitespace-pre-line overflow-x-auto max-w-full">{message.content}</p>
                     {/if}
                 </div>
                 {#if message.author_id === user_id || user_permissions?.["Manage channels"] || user_permissions?.["Admin"]}

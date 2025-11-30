@@ -12,8 +12,8 @@
         </a>
 
         <div class="flex items-center ml-auto gap-8">
-            <a class="text-gray-600 flex items-center gap-[13px] font-medium text-[17px] no-underline" href="https://x.com">Funkcje</a>
-            <a class="text-gray-600 flex items-center gap-[13px] font-medium text-[17px] no-underline" href="https://x.com">Dlaczego My</a>
+            <a class="text-gray-600 flex items-center gap-[13px] font-medium text-[17px] no-underline" href="#funkcje">Funkcje</a>
+            <a class="text-gray-600 flex items-center gap-[13px] font-medium text-[17px] no-underline" href="#dlaczego-my">Dlaczego My</a>
             <a class="text-gray-600 flex items-center gap-[13px] font-medium text-[17px] no-underline" href="https://x.com">Kontakt</a>
             <a class="h-11 w-[132px] bg-gradient-to-r from-purple-500 to-pink-500 text-white content-center text-center font-medium rounded-xl no-underline" href="/login">Zaloguj się</a>
         </div>
