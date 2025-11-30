@@ -34,7 +34,7 @@
     ];
 </script>
 
-<div class="w-full h-[703px] flex justify-center bg-white">
+<div id="funkcje" class="w-full h-[703px] flex justify-center bg-white">
     <div class="max-w-[1232px] w-full h-full px-[55px] flex flex-col items-center">
         <div class="w-fit h-fit mt-[94px] flex flex-col items-center">
             <div class="font-bold text-5xl leading-[48px] text-purple-600">Funkcje Kittycord</div>

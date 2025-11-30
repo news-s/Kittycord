@@ -2,7 +2,7 @@
     import CatImage from './assets/apple enjoyer cat.png';
 </script>
 
-<div class="w-full h-[703px] flex justify-center bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50">
+<div id="dlaczego-my" class="w-full h-[703px] flex justify-center bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50">
     <div class="max-w-[1232px] w-full h-full px-[104px] flex flex-row items-center gap-20">
         <div class="flex-1 flex flex-col">
             <div class="font-bold text-5xl leading-[60px] text-purple-600">
