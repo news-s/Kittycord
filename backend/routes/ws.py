@@ -34,7 +34,6 @@ class Socket:
 
     async def send(self, message):
         classes = message["class"].copy()
-        message["class"] = None
 
         
         for classifier in classes:
