@@ -37,14 +37,14 @@
         
         if(data.type === "load_server") {
             server_name = data.server_name
-            channel_name = data.channels[0]?.channel_name
+            channel_name = data.channels[0]?.channel_name.channel_name
 
             channels = data.channels;
             messages = data.messages;
         }
         else if(data.type === "load_channel") {
             messages = data.messages;
-            channel_name = data.channel_name
+            channel_name = data.channel_name.channel_name
         }
         else if(data.type === "new_message")  messages.push(data);
         else if(data.type === "add_channel") channels.push(data);
@@ -148,5 +148,5 @@
     </div>
 
     <Chat {messages} user_id={$profile?.user_id} {server_id} {channel_name} {user_permissions}/>
-    <Members {users} {user_permissions} user_id={$profile?.user_id} {server_id}/>
+    <Members {users} {user_permissions} {server_id}/>
 </div>

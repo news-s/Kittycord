@@ -80,4 +80,4 @@
 </div>
 
 <AddChannel {open} {server_id}/>
-<EditChannel {editing_channel}/>
+<EditChannel bind:editing_channel={editing_channel}/>

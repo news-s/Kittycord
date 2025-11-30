@@ -1,6 +1,6 @@
 <script>
     import { FetchData } from "$lib/Fetch";
-    let { users, user_permissions, user_id, server_id } = $props();
+    let { users, user_permissions, server_id } = $props();
 
     let roles = $state([]);
     let showing_profile = $state({
@@ -19,10 +19,10 @@
         showing_profile.name = profile.name;
         showing_profile.note = profile.note;
         showing_profile.user_id = profile.user_id;
-        showing_profile.roles = await FetchData(
-            `all_user_roles/${user_id}/${server_id}`, 
-            "GET"
-        );
+        showing_profile.roles = await FetchData(`all_user_roles/${user_id}/${server_id}/`, "GET");
+
+        console.log($state.snapshot(showing_profile.roles));
+
         showing_profile.state = true;
 
         roles = await FetchData(`roles_in_server/${server_id}/`, "GET");
@@ -74,7 +74,7 @@
                 <button 
                     type="button"
                     class="flex items-center gap-3 p-2 rounded-lg hover:bg-pink-100 transition cursor-pointer w-full text-left"
-                    onclick={() => ShowProfile(user.id)}
+                    onclick={() => ShowProfile(user.user_id)}
                     aria-label={`Show profile for ${user.name}`}
                 >
                     <img src={user.avatar} alt="avatar" class="w-8 h-8 rounded-full border-2 border-pink-200" />

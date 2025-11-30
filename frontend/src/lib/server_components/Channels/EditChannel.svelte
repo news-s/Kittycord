@@ -4,6 +4,8 @@
     let { editing_channel } = $props();
 
     async function EditChannelName() {
+        const token = localStorage.getItem("token");
+
         const result = FetchData(
             "edit_channel/name", 
             "PUT", 
@@ -25,6 +27,8 @@
     }
 
     async function EditChannelColor() {
+        const token = localStorage.getItem("token");
+
         if(!IsValidFullHex(editing_channel.color)) {
             editing_channel.color_error = "Invalid color";
             return;
@@ -46,6 +50,8 @@
     }
 
     async function EditChannelRole() {
+        const token = localStorage.getItem("token");
+
         const result = FetchData(
             "edit_channel/role", 
             "PUT", 
