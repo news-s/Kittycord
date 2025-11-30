@@ -51,5 +51,8 @@
                 </svg>
             </button>
         </div>
+        {#if errorMsg}
+            <div class="absolute left-0 -bottom-8 w-full text-center text-sm text-red-500 font-semibold">{errorMsg}</div>
+        {/if}
     </form>
 </div>
