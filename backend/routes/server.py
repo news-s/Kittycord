@@ -38,7 +38,7 @@ async def join(data: JoinServer) -> str:
     res = join_server(user_id, server_id)
 
     if res["status"] == "error":
-        raise HTTPException(status_code=500, detail="Server initally found but failed to join")
+        raise HTTPException(status_code=409, detail="User is already member")
     
 
     await broadcast.broadcast({
