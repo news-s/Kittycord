@@ -179,6 +179,7 @@ class Socket:
             "status": 200,
             "type": "load_channel",
             "messages": res["messages"],
+            "channel_name": channel_name,
             "is_muted": is_muted,
         })
 
@@ -227,7 +228,7 @@ class Socket:
             await self.handle_error(500, "Channel found but failed to get messages")
             return
         
-        channels = filter(lambda channel: is_user_owner or channel["role_needed"] in roles or channel["role_needed"] == None, channels)
+        channels = list(filter(lambda channel: is_user_owner or channel["role_needed"] in roles or channel["role_needed"] == None, channels))
 
         self.current_dm = None
         self.current_channel = channels[0]["id"]
