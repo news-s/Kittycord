@@ -25,8 +25,6 @@ async def profile(user_id: int) -> ProfileResponse:
 
     if user_data["status"] == "error":
         raise HTTPException(status_code=404, detail="User not found")
-
-    print(broadcast.connected_ids)
     
     return ProfileResponse(
         user_id=user_id, name=user_data["name"], display_name=user_data["display_name"],
@@ -41,6 +39,9 @@ class EditProfile(BaseModel):
 
 @router.put("/edit_profile/display_name", status_code=200)
 async def edit_display_name(data: EditProfile) -> str:
+    if len(data.new_val) > 40:
+        raise HTTPException(status_code=400, detail="Display name too long")
+    
     user_id = verify_token(data.token)
 
     res = change_display_name(user_id, data.new_val)
@@ -50,6 +51,9 @@ async def edit_display_name(data: EditProfile) -> str:
 
 @router.put("/edit_profile/name", status_code=200)
 async def edit_name(data: EditProfile) -> str:
+    if len(data.new_val) > 40:
+        raise HTTPException(status_code=400, detail="Username too long")
+    
     user_id = verify_token(data.token)
     
     if not data.new_val.isalnum() or len(data.new_val) < 3 or len(data.new_val) > 20:
@@ -61,6 +65,9 @@ async def edit_name(data: EditProfile) -> str:
 
 @router.put("/edit_profile/note", status_code=200)
 async def edit_note(data: EditProfile) -> str:
+    if len(data.new_val) > 200:
+        raise HTTPException(status_code=400, detail="Note too long")
+    
     user_id = verify_token(data.token)
 
     if len(data.new_val) > 100:

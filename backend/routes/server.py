@@ -85,6 +85,12 @@ class AddServerResponse(BaseModel):
 
 @router.post("/add_server", status_code=201)
 async def add_server(data: AddServer) -> AddServerResponse:
+    if len(data.server_name) > 40:
+        raise HTTPException(status_code=400, detail="Server name too long")
+    
+    if len(data.invite_link) > 20:
+        raise HTTPException(status_code=400, detail="Server invite link too long")
+    
     user_id = verify_token(data.token)
 
     res = create_server(int(user_id), data.server_name, data.invite_link)
@@ -151,6 +157,9 @@ class EditServer(BaseModel):
 
 @router.put("/edit_server/name", status_code=200)
 async def edit_server_name(data: EditServer) -> str:
+    if len(data.new_val) > 40:
+        raise HTTPException(status_code=400, detail="Server name too long")
+    
     user_id = verify_token(data.token)
 
     if not is_member(user_id, data.server_id):
@@ -178,6 +187,9 @@ async def edit_server_name(data: EditServer) -> str:
 
 @router.put("/edit_server/link", status_code=200)
 async def edit_server_link(data: EditServer) -> str:
+    if len(data.new_val) > 20:
+        raise HTTPException(status_code=400, detail="Server invite link too long")
+    
     user_id = verify_token(data.token)
 
     if not is_member(user_id, data.server_id):

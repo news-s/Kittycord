@@ -44,6 +44,9 @@ class EditDM(BaseModel):
 
 @router.put("/edit_dm", status_code=200)
 async def edit_dm(data: EditDM) -> str:
+    if len(data.new_content) > 40:
+        raise HTTPException(status_code=400, detail="Channel name too long")
+    
     user_id = verify_token(data.token)
     res = get_author(data.dm_id)
     reciever = res["reciever_id"]

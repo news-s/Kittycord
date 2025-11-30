@@ -24,6 +24,10 @@ class AddRole(BaseModel):
 async def add_role(data: AddRole) -> int:
     if data.role_color[0] != "#" or len(data.role_color) > 7:
         raise HTTPException(status_code=400, detail="Role color invalid")
+    
+    if len(data.role_name) > 40:
+        raise HTTPException(status_code=400, detail="Role name too long")
+    
 
     user_id = verify_token(data.token)
 
@@ -226,6 +230,9 @@ class EditRole(BaseModel):
 
 @router.put("/edit_role/name", status_code=200)
 async def edit_name(data: EditRole) -> str:
+    if len(data.new_val) > 40:
+        raise HTTPException(status_code=400, detail="Role name too long")
+    
     user_id = verify_token(data.token)
     
     res = get_server_id_by_role(data.role_id)

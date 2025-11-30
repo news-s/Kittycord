@@ -17,7 +17,7 @@ class LoginResponse(BaseModel):
 
 
 @router.post("/login", status_code=200)
-async def login(data: Login) -> LoginResponse:
+async def login(data: Login) -> LoginResponse:    
     user = verify_user(data.username, data.hashed_password)
     if user is None or user == 0:
         raise HTTPException(status_code=401, detail="Bad credentials")
@@ -33,6 +33,9 @@ class AddUser(BaseModel):
 
 @router.post("/add_user", status_code=201)
 async def add_user(data: AddUser) -> str:
+    if len(data.name) > 40:
+        raise HTTPException(status_code=400, detail="Username too long")
+    
     res = create_user(data.name, data.hashed_password)
 
     if res["status"] == "error":
@@ -56,6 +59,6 @@ async def remove_user(data: RemoveUser) -> str:
     res = delete_user(user_id)
 
     if res["status"] == "error":
-        raise HTTPException(status_code=501, detail="User found but not deleted")
+        raise HTTPException(status_code=500, detail="User found but not deleted")
     
     return res["status"]

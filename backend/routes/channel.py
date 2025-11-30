@@ -19,6 +19,9 @@ class AddChannel(BaseModel):
 
 @router.post("/add_channel", status_code=201)
 async def add_channel(data: AddChannel) -> int:
+    if len(data.channel_name) > 40:
+        raise HTTPException(status_code=400, detail="Channel name too long")
+
     user_id = verify_token(data.token)
     
     if not is_member(user_id, data.server_id):
@@ -83,6 +86,9 @@ class EditChannel(BaseModel):
 
 @router.put("/edit_channel/name", status_code=200)
 async def edit_name(data: EditChannel) -> str:
+    if len(data.new_val) > 40:
+        raise HTTPException(status_code=400, detail="Channel name too long")
+    
     user_id = verify_token(data.token)
     res = get_server_id(data.channel_id)
 
