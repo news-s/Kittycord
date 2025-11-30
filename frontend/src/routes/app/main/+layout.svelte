@@ -1,5 +1,6 @@
 <script>
 	import { json } from '@sveltejs/kit';
+    import { profile } from "../stores";
     let friends = $state([]);
     let friend_req = $state([]);
 import { onMount } from 'svelte';
@@ -34,6 +35,10 @@ onMount(() => {
 
 function add_friend(friend_tag){
     const token = localStorage.getItem("token");
+    if(friend_tag == profile.name){
+        alert("Oh hell nah");
+        return;
+    };
     fetch('http://localhost:8000/send_friend_req', {
         method: "POST",
         headers: {
@@ -43,6 +48,34 @@ function add_friend(friend_tag){
     })
     .then(response => {
         isopen = !isopen
+    })
+}
+
+function reject_friend_request(friend_tag){
+    const token = localStorage.getItem("token");
+    fetch('http://localhost:8000/reject_friend_req', {
+        method: "PATCH",
+        headers: {
+            'Content-Type': "application/json"
+        },
+        body: JSON.stringify({token:token, name:friend_tag})
+    })
+    .then(response => {
+
+    })
+}
+
+function accept_friend_request(friend_tag){
+    const token = localStorage.getItem("token");
+    fetch('http://localhost:8000/accept_friend_req', {
+        method: "PUT",
+        headers: {
+            'Content-Type': "application/json"
+        },
+        body: JSON.stringify({token:token, name:friend_tag})
+    })
+    .then(response => {
+
     })
 }
 let isopen = $state(false);
@@ -90,7 +123,16 @@ let friend_tag = $state("");
             <div>Zaproszenia</div>
         {/if}
         {#each friend_req as fr}
-            <span>{fr.name} - <button onclick={() => {accept_friend_request(fr.name)}}>Accept</button></span>
+            <div class="flex items-center justify-between bg-pink-100/80 hover:bg-pink-200 rounded-xl px-4 py-2 gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-pink-300"></div>
+                    <div class="text-sm font-medium text-pink-700">{fr.name}</div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick={() => accept_friend_request(fr.name)} class="px-3 py-1 rounded-md bg-pink-500 text-white text-sm hover:bg-pink-600">Akceptuj</button>
+                    <button onclick={() => reject_friend_request(fr.name)} class="px-3 py-1 rounded-md bg-white text-pink-600 border border-pink-200 hover:bg-pink-50 text-sm">Odrzuć</button>
+                </div>
+            </div>
         {/each}
         </div>
         <div class="text-xs text-gray-500 mb-2">Znajomi — {friends.length}</div>
