@@ -50,7 +50,7 @@ async def reject_friend_req(data: FriendRequest) -> str:
     return res["status"]
 
 @router.post("/get_friends", status_code=200)
-async def test_get_friends(token: TokenData) -> list[int]:
+async def test_get_friends(token: TokenData) -> list[str]:
     user_id = verify_token(token.token)
 
     return get_friends(user_id)["friends"]
