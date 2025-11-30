@@ -63,9 +63,10 @@ def get_friends(user_id: int):
     db_gen = models.get_db()
     db = next(db_gen)
     user = db.query(models.User).filter_by(id=user_id).first()
+    friends = db.query(models.User).filter(models.User.id.in_(user.friends)).all().display_name
     if user == None:
         return {'status': "error", 'message': "user doesnt exists"}
-    return {'status': "success", 'friends': user.friends}
+    return {'status': "success", 'friends': friends}
 
 def is_friends(user_id1: int, user_id2: int):
     db_gen = models.get_db()

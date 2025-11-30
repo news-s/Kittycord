@@ -1,5 +1,5 @@
 from auth_token import create_access_token
-from database.friends import get_friend_requests, invite_friend, is_friends
+from database.friends import get_friend_requests, invite_friend, is_friends, accept_friend
 from database.login import create_user, verify_user
 from database.profile import get_user_data
 
@@ -90,3 +90,16 @@ def test_get_friend_reqs(client, db):
 
     assert len(data["friend_requests"]) == 1
     assert data["friend_requests"][0]["from_user_id"] == user_id1
+
+def test_get_friends(client, db):
+    create_user("name1", "pass")
+    user_id1 = verify_user("name1", "pass")
+    create_user("name2", "pass")
+    user_id2 = verify_user("name2", "pass")
+    token1 = create_access_token({"id": user_id1})
+    invite_friend(user_id1, user_id2)
+    accept_friend(user_id2, user_id1)
+    res = client.post("/get_friends", json={
+        "token": token1,
+    })
+    assert res.status_code == 200

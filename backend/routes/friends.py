@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from auth_token import verify_token
-from database.friends import accept_friend, get_friend_requests, invite_friend, reject_friend
+from database.friends import accept_friend, get_friend_requests, invite_friend, reject_friend, get_friends
 
 
 router = APIRouter()
@@ -11,6 +11,9 @@ router = APIRouter()
 class FriendRequest(BaseModel):
     token: str
     user_id: int
+
+class TokenData(BaseModel):
+    token: str
 
 @router.post("/send_friend_req", status_code=201)
 async def send_friend_req(data: FriendRequest) -> int:
@@ -46,6 +49,11 @@ async def reject_friend_req(data: FriendRequest) -> str:
 
     return res["status"]
 
+@router.post("/get_friends", status_code=200)
+async def test_get_friends(token: TokenData) -> list[int]:
+    user_id = verify_token(token.token)
+
+    return get_friends(user_id)["friends"]
 
 class GetFriendRequests(BaseModel):
     token: str

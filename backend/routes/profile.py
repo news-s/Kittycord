@@ -51,7 +51,10 @@ async def edit_display_name(data: EditProfile) -> str:
 @router.put("/edit_profile/name", status_code=200)
 async def edit_name(data: EditProfile) -> str:
     user_id = verify_token(data.token)
-
+    
+    if not data.new_val.isalnum() or len(data.new_val) < 3 or len(data.new_val) > 20:
+        raise HTTPException(status_code=400, detail="Invalid username. Must be alphanumeric and 3-20 characters long.")
+    
     res = change_name(user_id, data.new_val)
 
     return res["status"]
@@ -60,6 +63,9 @@ async def edit_name(data: EditProfile) -> str:
 async def edit_note(data: EditProfile) -> str:
     user_id = verify_token(data.token)
 
+    if len(data.new_val) > 100:
+        raise HTTPException(status_code=400, detail="Note is too long. Maximum length is 100 characters.")
+    
     res = change_note(user_id, data.new_val)
     
     return res["status"]
