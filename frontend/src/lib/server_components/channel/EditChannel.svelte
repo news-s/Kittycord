@@ -3,6 +3,7 @@
     
     let { editing_channel, roles } = $props();
 
+    let error_message = $state("");
     async function EditChannelName() {
         const token = localStorage.getItem("token");
 
@@ -17,7 +18,15 @@
             }
         );
         
-        if(result === "success")return;
+        if(result.status && result.status != 200) {
+            error_message = await result.json();
+            error_message = error_message.detail;
+            return;
+        }
+        if(result == "invalid input") {
+            error_message = result;
+            return;
+        }
         
         editing_channel.name_error = result;
     }
@@ -30,7 +39,7 @@
         const token = localStorage.getItem("token");
 
         if(!IsValidFullHex(editing_channel.color)) {
-            editing_channel.color_error = "Invalid color";
+            error_message = "Invalid color";
             return;
         };
 
@@ -44,13 +53,23 @@
             }
         );
 
-        if(result === "success")return;
+        if(result.status && result.status != 200) {
+            error_message = await result.json();
+            error_message = error_message.detail;
+            return;
+        }
+        if(result == "invalid input") {
+            error_message = result;
+            return;
+        }
         
         editing_channel.color_error = result;
     }
 
     async function EditChannelRole() {
         const token = localStorage.getItem("token");
+
+        if(!editing_channel.role)return;
 
         const result = FetchData(
             "edit_channel/role_needed", 
@@ -62,12 +81,22 @@
             }
         );
 
-        if(result === "success")return;
+        if(result.status && result.status != 200) {
+            error_message = await result.json();
+            error_message = error_message.detail;
+            return;
+        }
+        if(result == "invalid input") {
+            error_message = result;
+            return;
+        }
         
         editing_channel.role_error = result;
     }
 
     function HandleEditingChannel() {
+        error_message = "";
+
         EditChannelName();
         EditChannelColor();
         EditChannelRole();
@@ -92,6 +121,7 @@
     <div class="fixed top-0 left-0 w-screen h-screen bg-black/30 backdrop-blur-sm flex items-center justify-center z-50" onclick={() => editing_channel.state = false} onkeydown={(e) => e.key === 'Escape' && (editing_channel.state = false)} role="button" tabindex="0">
         <div class="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl p-8 shadow-2xl border border-pink-200/50 flex flex-col items-center" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="dialog" tabindex="-1" style="width: 440px;">
             <h2 class="text-2xl font-semibold text-purple-900 mb-6 text-center w-full">Edit Channel</h2>
+            <p class="text-red-600">{error_message}</p>
             <input 
                 type="text" 
                 placeholder="Channel Name" 

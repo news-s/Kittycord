@@ -1,10 +1,12 @@
 <script>
+    import { tick } from "svelte";
     import { FetchData } from "$lib/Fetch"
     let { message, editing } = $props(); 
 
-    async function EnableEditingMessage(event, message_id) {
+    async function EnableEditingMessage(event) {
         editing.state = !editing.state;
-        editing.id = message_id;
+        editing.id = message.message_id;
+        editing.content = message.content
 
         await tick();    
 
@@ -27,7 +29,7 @@
 
 <div class="absolute top-0 right-2 -translate-y-1/2 opacity-0 group-hover/message:opacity-100 flex items-center gap-1 bg-white border border-purple-200/50 rounded-lg shadow-lg transition-opacity">
     <button 
-        onclick={(event) => EnableEditingMessage(event, message.message_id)}
+        onclick={(event) => EnableEditingMessage(event)}
         class="p-2 hover:bg-purple-50 rounded-lg transition-colors"
         aria-label="Edit message"
     >

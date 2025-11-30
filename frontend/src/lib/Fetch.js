@@ -21,7 +21,7 @@ export async function FetchData(end_point, method, body) {
         });
         
         if (!res.ok) {
-            return res.status;
+            return res
         }
         
         return res.json();

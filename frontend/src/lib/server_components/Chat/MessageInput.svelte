@@ -14,6 +14,8 @@
 
         if(message.length > 250) {
             error_message = "Wiadomosc jest za dluga";
+
+            setTimeout(() => error_message = "", 3000);
             return;
         }
         if(!message) return;
@@ -32,6 +34,7 @@
     });
 </script>
 
+<p class="text-red-600">{error_message}</p>
 <div class="flex justify-center items-center w-full px-6 py-6 border-t border-pink-300/50 bg-white/50">
     <form onsubmit={SendMessage} class="relative w-full" name="message-form">
         <input 
@@ -56,8 +59,5 @@
                 </svg>
             </button>
         </div>
-        {#if error_message}
-            <div class="absolute left-0 -bottom-8 w-full text-center text-sm text-red-500 font-semibold">{error_message}</div>
-        {/if}
     </form>
 </div>

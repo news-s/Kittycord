@@ -7,41 +7,15 @@
     let servers = $state([]);
     let error_message = $state("");
 
-    async function CreateServer(token, server_name) {
-        try {
-            const res = await fetch(`http://localhost:8000/add_server`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ 
-                    token: token,
-                    server_name: server_name,
-                    invite_link: server_name
-                }),
-            });
-
-            if (!res.ok) {
-                throw new Error(`HTTP error! Status: ${res.status}`);
-            }
-
-            return res.json();
-        } catch (err) {
-            console.error("Fetch error:", err);
-        }
-    }
-
-    async function HandleCreatingServer() {
+    async function CreateServer() {
         error_message = "";
 
         const token = localStorage.getItem('token');
-        const input = document.getElementById('server-name');
-        const server_name = input.value.trim();
+        const name_input = document.getElementById('server-name');
+        const server_name = name_input.value.trim();
 
-        if(server_name.length > 20) {
-            error_message = "Za dluga nazwa servera";
-            return;
-        }
+        const link_input = document.getElementById('server-link');
+        const server_link = link_input.value.trim();
 
         const result = await FetchData(
             "add_server",
@@ -49,19 +23,19 @@
             {
                 token: token,
                 server_name: server_name,
-                invite_link: server_name
+                invite_link: server_link
             }
         );
 
-        if(result == 409) {
-            error_message = "Server o takim linku juz istnieje";
+        if(result.status && result.status != 200) {
+            error_message = await result.json();
+            error_message = error_message.detail;
             return;
         }
         if(result == "invalid input") {
-            error_message = "Nie poprawny input";
+            error_message = result;
             return;
         }
-        if(!result?.server_id)return;
         
         open = false;
 
@@ -105,13 +79,19 @@
                 id="server-name"
                 class="w-full px-4 py-3 rounded-xl bg-white/80 border border-pink-200 text-gray-800 placeholder-gray-400 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
             />
+            <input 
+                type="text" 
+                placeholder="Server Link" 
+                id="server-link"
+                class="w-full px-4 py-3 rounded-xl bg-white/80 border border-pink-200 text-gray-800 placeholder-gray-400 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
+            />
             <div class="flex gap-3">
                 <button 
                     onclick={() => open = false}
                     class="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-colors"
                 >Cancel</button>
                 <button 
-                    onclick={HandleCreatingServer}
+                    onclick={CreateServer}
                     class="flex-1 px-4 py-2.5 rounded-xl text-white font-medium transition-colors shadow-lg"
                     style="background: linear-gradient(135deg, #E9D5FF 0%, #BFDBFE 70.71%);"
                 >

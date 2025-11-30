@@ -15,6 +15,7 @@
     let user_permissions = $state(null);
 
     let success_message = $state("");
+    let error_message = $state("");
 
     async function EditServerName() {
         updated_server_name = updated_server_name.trim();
@@ -22,6 +23,11 @@
 
         const token = localStorage.getItem("token");
         server_name = updated_server_name
+
+        if(server_name.length > 30) {
+            error_message = "Server name is too long! ";
+            return;
+        }
 
         const result = await FetchData(
             "edit_server/name", 
@@ -43,6 +49,11 @@
         const token = localStorage.getItem("token");
         server_link = updated_server_link;
 
+        if(server_link.length > 20) {
+            error_message += "Server link is too long! ";
+            return;
+        }
+
         const result = await FetchData(
             "edit_server/link", 
             "PUT",
@@ -53,7 +64,15 @@
             }
         );
 
-        console.log();
+        if(result.status && result.status != 200) {
+            error_message = await result.json();
+            error_message = error_message.detail;
+            return;
+        }
+        if(result == "invalid input") {
+            error_message = result;
+            return;
+        }
 
         if(success_message === "") {
             success_message += "Zaktualzowano Link"; 
@@ -64,6 +83,7 @@
 
     function UpdateServer() {
         success_message = "";
+        error_message = "";
 
         EditServerName();
         EditServerLink();
@@ -72,8 +92,8 @@
     async function DeleteServer() {
         const token = localStorage.getItem("token");
 
-        FetchData(
-            "edit_server/remove_server", 
+        const result = await FetchData(
+            "remove_server", 
             "PATCH",
             {
                 token: token,
@@ -88,8 +108,8 @@
     async function LeaveServer() {
         const token = localStorage.getItem("token");
         
-        FetchData(
-            `permissions/leave`,
+        const result = await FetchData(
+            "leave",
             "PUT",
             {
                 token: token,
@@ -97,7 +117,7 @@
             }
         );
         
-        window.location.href("/app/main");
+        window.location.href = "/app/main";
     }
 
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -134,6 +154,7 @@
 
 <div class="flex flex-col items-center justify-center min-h-[80vh] w-full">
     <p class="text-green-600">{success_message}</p>
+    <p class="text-red-600">{error_message}</p>
     <form class="flex flex-col gap-6 w-full max-w-md bg-white/80 rounded-2xl shadow-lg p-8 border border-pink-100 mx-auto">
         <input disabled={!user_permissions?.["Manage server"] || !user_permissions?.["Admin"]} type="text" bind:value={updated_server_name} placeholder="Nazwa serwera" class="px-4 py-2 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300 transition" />
         <input disabled={!user_permissions?.["Manage server"] || !user_permissions?.["Admin"]} type="text" bind:value={updated_server_link} placeholder="Link do serwera" class="px-4 py-2 rounded-xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-300 transition"/>

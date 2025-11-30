@@ -10,6 +10,9 @@
     let editing = $state({state: false, id: null});
     let roles = $state([]);
 
+    let error_message = $state("");
+    let edit_error_message = $state("");
+
     const permission_keys = [
         "Admin",
         "Manage server",
@@ -33,9 +36,12 @@
         const color_input = document.getElementById("create-role-color");
         const color = color_input.value.trim();
 
-        if(!IsValidFullHex(color))return;
+        if(!IsValidFullHex(color)){
+            error_message = "Invalid color!";
+            return;
+        }
 
-        const response = await FetchData(
+        const result = await FetchData(
             "add_role",
             "POST",
             {
@@ -46,9 +52,17 @@
             }
         );
 
-        if( typeof response != "number")return;
+        if(result.status && result.status != 200) {
+            error_message = await result.json();
+            error_message = error_message.detail;
+            return;
+        }
+        if(result == "invalid input") {
+            error_message = result;
+            return;
+        }
 
-        roles.push({role_name: name, color: color, id: response, permissions: {}});
+        roles.push({role_name: name, color: color, id: result, permissions: {}});
     }
 
     async function RemoveRole(role_id) {
@@ -56,7 +70,7 @@
         
         if(token === undefined || role_id === undefined) return;
 
-        const response = await FetchData(
+        const result = await FetchData(
             "remove_role",
             "PATCH",
             {
@@ -65,9 +79,9 @@
             }
         );
 
-        if(response !== "success")return;
-
         roles = roles.filter(role => role.id !== role_id);
+
+        editing.state = false;
     }
 
     function EnableEditingRole(role) {
@@ -85,7 +99,7 @@
 
         if(!name || name === editing.name)return;
 
-        const name_result = await FetchData(
+        const result = await FetchData(
             "edit_role/name",
             "PUT",
             {
@@ -95,7 +109,15 @@
             }
         );
         
-        if( name_result !== "success") return;
+        if(result.status && result.status != 200) {
+            edit_error_message = await result.json();
+            edit_error_message = edit_error_message.detail;
+            return;
+        }
+        if(result == "invalid input") {
+            edit_error_message = result;
+            return;
+        }
 
         for(const role of roles) {
             if(role.id !== role_id)continue;
@@ -111,9 +133,12 @@
         const color_input = document.getElementById("edit-role-color");
         const color = color_input.value.trim();
 
-        if(!IsValidFullHex(color) || color == editing.color)return;
+        if(!IsValidFullHex(color) || color == editing.color){
+            edit_error_message = "Invalid color!";
+            return;
+        }
 
-        const color_result = await FetchData(
+        const result = await FetchData(
             "edit_role/color",
             "PUT",
             {
@@ -123,7 +148,15 @@
             }
         );
 
-        if( color_result !== "success") return;
+        if(result.status && result.status != 200) {
+            edit_error_message = await result.json();
+            edit_error_message = edit_error_message.detail;
+            return;
+        }
+        if(result == "invalid input") {
+            edit_error_message = result;
+            return;
+        }
 
         for(const role of roles) {
             if(role.id !== role_id)continue;
@@ -145,7 +178,7 @@
             new_permissions[key] = value;   
         }
 
-        const permissions_result = await FetchData(
+        const result = await FetchData(
             "edit_role/permissions",
             "PUT",
             {
@@ -155,7 +188,15 @@
             }
         );
 
-        if( permissions_result !== "success") return;
+        if(result.status && result.status != 200) {
+            edit_error_message = await result.json();
+            edit_error_message = edit_error_message.detail;
+            return;
+        }
+        if(result == "invalid input") {
+            edit_error_message = result;
+            return;
+        }
 
         for(const role of roles) {
             if(role.id !== role_id)continue;
@@ -199,36 +240,38 @@
 </script>
 
 <div class="w-full h-screen flex flex-row">
-  <aside class="w-64 h-full overflow-y-auto flex flex-col gap-2 ml-12">
-    {#each roles as role}
-      <div class="flex items-center justify-between bg-white/70 rounded-xl px-4 py-2 shadow m-2">
-        <button onclick={() => EnableEditingRole(role)} class="text-purple-700 font-semibold hover:underline">{role.role_name}</button>
-        <button onclick={() => HandleRemovingRole(role.id)} class="text-red-600 font-semibold hover:underline">Usuń</button>
-      </div>
-    {/each}
-  </aside>
-  <main class="flex-1 flex flex-col items-center w-full overflow-y-auto">
-    <div class="w-full flex flex-col items-center pt-[8vh]" style="margin-right: 18rem;">
-      <form class="flex flex-col gap-6 w-full max-w-md bg-white/80 rounded-2xl shadow-lg p-8 border border-pink-100 mx-auto">
-        <input type="text" placeholder="Nazwa roli" id="create-role-name" class="px-4 py-2 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300 transition" />
-        <input type="text" placeholder="Kolor (np. #ff00ff)" id="create-role-color" class="px-4 py-2 rounded-xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-300 transition"/>
-        <button type="button" onclick={CreateRole} class="bg-gradient-to-r from-pink-300 to-purple-300 text-purple-900 font-semibold px-6 py-2 rounded-xl shadow hover:scale-105 hover:from-pink-400 hover:to-purple-400 transition-all">Dodaj rolę</button>
-      </form>
-      {#if editing.state}
-        <div class="mt-8 w-full max-w-md mx-auto bg-white/90 rounded-xl shadow p-6 flex flex-col gap-4">
-          <input type="text" placeholder="Nazwa" id="edit-role-name" value={editing.name} class="px-4 py-2 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300 transition"/>
-          <input type="text" placeholder="Kolor" id="edit-role-color" value={editing.color} class="px-4 py-2 rounded-xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-300 transition"/>
-          <form name="editing-form" class="flex flex-col gap-2">
-            {#each permission_keys as key}
-              <label for={key} class="flex items-center gap-2">
-                <input type="checkbox" checked={roles.find(r => r.id === editing.id)?.permissions[key]} name={key} class="accent-pink-500"/>
-                <span>{key}</span>
-              </label>
-            {/each}
-          </form>
-          <button onclick={() => HandleEditing(editing.id)} class="bg-gradient-to-r from-pink-300 to-purple-300 text-purple-900 font-semibold px-6 py-2 rounded-xl shadow hover:scale-105 hover:from-pink-400 hover:to-purple-400 transition-all">Zapisz</button>
+    <aside class="w-64 h-full overflow-y-auto flex flex-col gap-2 ml-12">
+        {#each roles as role}
+            <div class="flex items-center justify-between bg-white/70 rounded-xl px-4 py-2 shadow m-2">
+                <button onclick={() => EnableEditingRole(role)} class="text-purple-700 font-semibold hover:underline">{role.role_name}</button>
+                <button onclick={() => RemoveRole(role.id)} class="text-red-600 font-semibold hover:underline">Usuń</button>
+            </div>
+        {/each}
+    </aside>
+    <main class="flex-1 flex flex-col items-center w-full overflow-y-auto">
+        <div class="w-full flex flex-col items-center pt-[8vh]" style="margin-right: 18rem;">
+            <form class="flex flex-col gap-6 w-full max-w-md bg-white/80 rounded-2xl shadow-lg p-8 border border-pink-100 mx-auto">
+                <p class="text-red-600">{error_message}</p>
+                <input type="text" placeholder="Nazwa roli" id="create-role-name" class="px-4 py-2 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300 transition" />
+                <input type="text" placeholder="Kolor (np. #ff00ff)" id="create-role-color" class="px-4 py-2 rounded-xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-300 transition"/>
+                <button type="button" onclick={CreateRole} class="bg-gradient-to-r from-pink-300 to-purple-300 text-purple-900 font-semibold px-6 py-2 rounded-xl shadow hover:scale-105 hover:from-pink-400 hover:to-purple-400 transition-all">Dodaj rolę</button>
+            </form>
+            {#if editing.state}
+                <div class="mt-8 w-full max-w-md mx-auto bg-white/90 rounded-xl shadow p-6 flex flex-col gap-4">
+                    <p class="text-red-600">{edit_error_message}</p>
+                    <input type="text" placeholder="Nazwa" id="edit-role-name" value={editing.name} class="px-4 py-2 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300 transition"/>
+                    <input type="text" placeholder="Kolor" id="edit-role-color" value={editing.color} class="px-4 py-2 rounded-xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-300 transition"/>
+                    <form name="editing-form" class="flex flex-col gap-2">
+                        {#each permission_keys as key}
+                            <label for={key} class="flex items-center gap-2">
+                                <input type="checkbox" checked={roles.find(r => r.id === editing.id)?.permissions[key]} name={key} class="accent-pink-500"/>
+                                <span>{key}</span>
+                            </label>
+                        {/each}
+                    </form>
+                    <button onclick={() => HandleEditing(editing.id)} class="bg-gradient-to-r from-pink-300 to-purple-300 text-purple-900 font-semibold px-6 py-2 rounded-xl shadow hover:scale-105 hover:from-pink-400 hover:to-purple-400 transition-all">Zapisz</button>
+                </div>
+            {/if}
         </div>
-      {/if}
-    </div>
-  </main>
+    </main>
 </div>
