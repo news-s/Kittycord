@@ -201,7 +201,7 @@ async def edit_server_link(data: EditServer) -> str:
     res = set_invite_link(data.server_id, data.new_val)
 
     if res["status"] == "error":
-        raise HTTPException(status_code=500, detail="Server initially found but failed to edit")
+        raise HTTPException(status_code=409, detail="Server invite link is not unique")
     
     return res["status"]
 

@@ -85,8 +85,11 @@ def set_invite_link(server_id: int, new_link: str):
     if server == None:
         return {'status': "error", 'message': "server doesnt exists"}
     server.invite_link = new_link
-    db.commit()
-    return {'status': "success"}
+    try:
+        db.commit()
+        return {'status': "success"}
+    except:
+        return {'status': "error", 'message': "Server invite link must be unique"}
 
 def change_server_name(server_id: int, new_name: str):
     db_gen = models.get_db()
