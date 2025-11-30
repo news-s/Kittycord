@@ -7,7 +7,7 @@
     import { FetchData } from "$lib/Fetch.js";
 	import Chat from "$lib/server_components/chat/Chat.svelte";
 	import Members from "$lib/server_components/Members.svelte";
-	import Channels from "$lib/server_components/channels/Channels.svelte";
+	import Channels from "$lib/server_components/channel/Channels.svelte";
 
     let token = null;
 
@@ -63,7 +63,7 @@
             messages = data.messages;
             channel_name = data.channel_name.channel_name
 
-            roles = await FetchData(`all_user_roles/${$profile?.user_id}/`, "GET");
+            roles = await FetchData(`all_user_roles/${$profile?.user_id}/${server_id}/`, "GET");
         }
         else if(data.type === "new_message")  messages.push(data);
         else if(data.type === "add_channel") channels.push(data);
