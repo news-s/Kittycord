@@ -1,33 +1,15 @@
 <script>
+    import { FetchData } from "$lib/Fetch";
 	import { onDestroy } from "svelte";
     import { load_layout, profile } from "../../../stores";
     import { page } from "$app/stores";
 
-    const server_id = $page.params.id;
     const { children } = $props();
-
-    load_layout.set(false);
+    const server_id = $page.params.id;
 
     let user_permissions = $state(null);
 
-    async function GetUserPermissions(user_id) {
-        try {
-            const res = await fetch(`http://localhost:8000/permissions/${user_id}/${server_id}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                }
-            });
-
-            if (!res.ok) {
-                throw new Error(`HTTP error! Status: ${res.status}`);
-            }
-
-            return res.json();
-        } catch (err) {
-            console.error("Fetch error:", err);
-        }
-    }
+    load_layout.set(false);
 
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -44,8 +26,7 @@
 
             if(tries >= 3)return;
         };
-
-        user_permissions = await GetUserPermissions($profile.user_id);
+        user_permissions = await FetchData(`permissions/${$profile.user_id}/${server_id}/`, "GET");
     });
 
     onDestroy(unsubscribe);

@@ -1,6 +1,6 @@
 <script>
-    import bcrypt from 'bcryptjs';
     import pcCat from '$lib/assets/pc cat.png';
+    import { FetchData } from '$lib/Fetch';
 
     let username = $state("");
     let email = $state("");
@@ -8,33 +8,33 @@
     let repassword = $state("");
     let acceptRegulations = $state(false);
 
-    async function register() {
-        const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(password, salt);
-        console.log(hash)
-
-        const res = await fetch('http://localhost:8000/add_user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: username,
-                hashed_password: password
-            })
-        });
-
-        return await res.json();
-    }
+    let error_message = $state("");
 
     async function onsubmit(event) {
         event.preventDefault();
 
+        error_message = "";
+
         if(password !== repassword) {
-        console.warn("Hasła nie są identyczne");
-        return;
+            error_message = "Hasla nie sa identyczne";
+            return;
         }
         
-        await register();
-        console.log('Zarejestrowano pomyślnie');
+        const result = await FetchData(
+            "add_user",
+            "POST",
+            {
+                name: username,
+                hashed_password: password
+            }
+        );
+
+        if(result === 409) {
+            error_message = "Username jest zajety";
+            return;
+        }
+        
+        if(result != "success")return;
 
         window.location.href = '/thanks';
     } 
@@ -53,6 +53,7 @@
             </div>
 
             <div style="border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.30); background: #FFFFFFB2; box-shadow: 0 25px 50px 0 rgba(0, 0, 0, 0.25);" class="backdrop-blur-sm p-8">
+                <p class="text-red-600">{error_message}</p>
                 <form {onsubmit} class="space-y-5">
                     <div>
                         <label for="username" class="block text-sm font-medium text-gray-700 mb-2 ml-3">

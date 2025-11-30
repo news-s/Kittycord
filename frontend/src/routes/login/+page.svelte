@@ -1,29 +1,32 @@
 <script>
+    import { FetchData } from "$lib/Fetch";
+
     let username = $state("");
     let password = $state("");
     let rememberMe = $state(false);
 
-    async function login() {
-        const res = await fetch('http://localhost:8000/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                username: username,
-                hashed_password: password
-            })
-        });
-
-        return await res.json();
-    }
+    let error_message = $state("");
 
     async function onsubmit(event) {
         event.preventDefault();
-        let data = await login();
-        
-        console.log('Zalogowano pomyślnie');
-        console.log(data.token);
-        localStorage.setItem('token', data.token);
 
+        error_message = "";
+        
+        let data = await FetchData(
+            "login",
+            "POST",
+            {
+                username: username,
+                hashed_password: password
+            }
+        )
+
+        if(data === 401) {
+            error_message = "Zły username albo hasło.";
+            return;
+        }
+        
+        localStorage.setItem('token', data.token);
         window.location.href = '/app/main';
     } 
 </script>
@@ -40,6 +43,7 @@
         </div>
 
         <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8">
+            <p class="text-red-600">{error_message}</p>
             <form {onsubmit} class="space-y-5">
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-2">

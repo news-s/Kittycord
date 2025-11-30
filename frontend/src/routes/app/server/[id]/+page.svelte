@@ -15,9 +15,9 @@
     let channels = $state(null);
     let messages = $state(null);
     let server_id = $state(null);
-    let user_permissions = $state([]);
     let server_name = $state("Server Name");
     let channel_name = $state("Channel Name");    
+    let user_permissions = $state([]);
     
     const page_subscription = page.subscribe(p => {
         server_id = p.params.id
@@ -32,7 +32,7 @@
     
     load_layout.set(true);
 
-    function message(event){
+    async function message(event){
         const data = JSON.parse(event.data);
         
         if(data.type === "load_server") {
@@ -41,6 +41,8 @@
 
             channels = data.channels;
             messages = data.messages;
+
+            users = await FetchData(`get_members/${server_id}/`, "GET");
         }
         else if(data.type === "load_channel") {
             messages = data.messages;
@@ -147,6 +149,6 @@
         <Channels {socket} {server_id} {channels} {user_permissions}/>
     </div>
 
-    <Chat {messages} user_id={$profile?.user_id} {server_id} {channel_name} {user_permissions}/>
-    <Members {users} {user_permissions} {server_id}/>
+    <Chat bind:messages={messages} user_id={$profile?.user_id} {server_id} {channel_name} {user_permissions}/>
+    <Members bind:users={users} {user_permissions} {server_id}/>
 </div>

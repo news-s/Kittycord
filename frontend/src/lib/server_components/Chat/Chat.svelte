@@ -9,6 +9,7 @@
     let { messages, user_id, server_id, channel_name, user_permissions } = $props();   
     
     let editing = $state({state: false, id: null, input: null});
+    let user_cache = $state({});
 
     async function DeleteMessage(message_id) {
         const token = localStorage.getItem("token")
@@ -47,6 +48,14 @@
         );
     }
 
+    async function GetUser(user_id) {
+        if(user_cache[user_id])return user_cache[user_id];
+        
+        const user = await FetchData(`profile/${user_id}/`, "GET");
+        user_cache[user_id] = user;
+        return user;
+    }
+
 </script>
 
 <div class="flex-1 flex flex-col" style="background: linear-gradient(180deg, #FDF4FF 0%, #EDE9FE 100%);">
@@ -58,7 +67,7 @@
                 <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex-shrink-0"></div>
                 <div class="flex-1">
                     <div class="flex items-baseline gap-2 mb-1">
-                        <span class="font-semibold text-gray-800 text-base">User {message.author_id}</span>
+                        <span class="font-semibold text-gray-800 text-base">{user_cache[message.author_id]?.display_name || GetUser(message.author_id)}</span>
                         <span class="text-xs text-gray-500">{message.date}</span>
                     </div>
                     {#if editing.state && editing.id === message.message_id}
@@ -83,5 +92,5 @@
         {/each}
     </div>
 
-    <MessageInput {socket}/>
+    <MessageInput {socket} bind:messages={messages} {user_id}/>
 </div>

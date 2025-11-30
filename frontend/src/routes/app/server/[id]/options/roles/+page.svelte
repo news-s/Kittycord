@@ -77,7 +77,7 @@
         editing.state = true;
     }
 
-    async function EditName() {
+    async function EditName(role_id) {
         const token = localStorage.getItem("token");
 
         const name_input = document.getElementById("edit-role-name");
@@ -105,7 +105,7 @@
         }
     }
 
-    async function EditColor() {
+    async function EditColor(role_id) {
         const token = localStorage.getItem("token");
 
         const color_input = document.getElementById("edit-role-color");
@@ -133,7 +133,9 @@
         }
     }
 
-    async function EditPermissions() {
+    async function EditPermissions(role_id) {
+        const token = localStorage.getItem("token");
+
         let new_permissions = {};
 
         for(const key of permission_keys) {
@@ -164,9 +166,9 @@
     }
 
     async function HandleEditing(role_id) {
-        EditName();
-        EditColor();
-        EditPermissions();
+        EditName(role_id);
+        EditColor(role_id);
+        EditPermissions(role_id);
     }
 
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -186,7 +188,7 @@
         };
 
         const user_permissions = await FetchData(`permissions/${$profile.user_id}/${server_id}/`, "GET");
-        if( !user_permissions["Manage roles"] || user_permissions["Admin"] )window.location.href(`/app/server/${server_id}`);
+        if( !user_permissions["Manage roles"] || !user_permissions["Admin"] )window.location.href =`/app/server/${server_id}`;
     });
 
     onDestroy(unsubscribe);

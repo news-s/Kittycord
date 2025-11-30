@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from "svelte";   
 
-    let { socket } = $props();
+    let { socket, messages, user_id } = $props();
 
     async function SendMessage(event) {
         event.preventDefault();

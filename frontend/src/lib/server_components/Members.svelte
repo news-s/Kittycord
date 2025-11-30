@@ -29,6 +29,7 @@
     }
 
     async function AddRole(user_id) {
+        const token = localStorage.getItem("token");
         const select = document.getElementById("role");
         const role_id = select.value;
 
@@ -44,12 +45,14 @@
 
         if(result !== "success")return;
 
-        const role = await GetRoleById(role_id);
+        const role = await FetchData(`role/${role_id}/`, "GET");
         showing_profile.roles.push(role)
     }
 
     async function RemoveRole(user_id, role_id) {
-        const result = FetchData(
+        const token = localStorage.getItem("token");
+
+        const result = await FetchData(
             "remove_role", 
             "PUT", 
             {
@@ -96,18 +99,18 @@
                     <p class="max-w-md text-center text-gray-700 italic">{showing_profile.note}</p>
                     <div class="roles w-full flex flex-wrap justify-center gap-2 mt-4">
                         {#if user_permissions?.["Manage roles"] || user_permissions?.["Admin"]}
-                            <select class="w-32 px-2 py-1 rounded-xl border border-pink-200 bg-white text-purple-800 font-semibold">
+                            <select class="w-32 px-2 py-1 rounded-xl border border-pink-200 bg-white text-purple-800 font-semibold" id="role">
                                 {#each roles as role}
                                     {#if !showing_profile.roles.some(obj => obj.id === role.id)}
                                         <option value={role.id} style={`color: ${role.color}`}>{role.role_name}</option>
                                     {/if}
                                 {/each}
                             </select>
-                            <button onclick={() => HandleAddingRoles(showing_profile.user_id)} class="ml-2 px-4 py-1 rounded-xl bg-gradient-to-r from-pink-300 to-purple-300 text-purple-900 font-semibold shadow hover:scale-105 transition-all">Dodaj rolę</button>
+                            <button onclick={() => AddRole(showing_profile.user_id)} class="ml-2 px-4 py-1 rounded-xl bg-gradient-to-r from-pink-300 to-purple-300 text-purple-900 font-semibold shadow hover:scale-105 transition-all">Dodaj rolę</button>
                         {/if}
                         {#each showing_profile.roles as role}
                             {#if user_permissions?.["Manage roles"] || user_permissions?.["Admin"]}
-                                <button onclick={() => HandleRemovingRoles(showing_profile.user_id, role.id)} class="px-3 py-1 rounded-xl bg-purple-100 text-purple-800 font-semibold shadow hover:bg-purple-200 transition-all">{role.role_name}</button>
+                                <button onclick={() => RemoveRole(showing_profile.user_id, role.id)} class="px-3 py-1 rounded-xl bg-purple-100 text-purple-800 font-semibold shadow hover:bg-purple-200 transition-all">{role.role_name}</button>
                             {:else}
                                 <div class="px-3 py-1 rounded-xl bg-purple-50 text-purple-700 font-semibold shadow">{role.role_name}</div>
                             {/if}
