@@ -13,7 +13,7 @@ def test_send_friend_req(client, db):
 
     res = client.post("/send_friend_req", json={
         "token": token1,
-        "user_id": user_id2
+        "name": "name2"
     })
 
     assert res.status_code == 201
@@ -30,11 +30,11 @@ def test_accept_friend_req(client, db):
     create_user("name2", "pass")
     user_id2 = verify_user("name2", "pass")
     token2 = create_access_token({"id": user_id2})
-    invite_friend(user_id1, user_id2)
+    invite_friend(user_id1, "name2")
 
     res = client.put("/accept_friend_req", json={
         "token": token2,
-        "user_id": user_id1
+        "name": "name1"
     })
 
     assert res.status_code == 200
@@ -53,11 +53,11 @@ def test_reject_friend_req(client, db):
     create_user("name2", "pass")
     user_id2 = verify_user("name2", "pass")
     token2 = create_access_token({"id": user_id2})
-    invite_friend(user_id1, user_id2)
+    invite_friend(user_id1, "name2")
 
     res = client.patch("/reject_friend_req", json={
         "token": token2,
-        "user_id": user_id1,       
+        "name": "name1",       
     })
 
     assert res.status_code == 200
@@ -78,7 +78,7 @@ def test_get_friend_reqs(client, db):
     create_user("name2", "pass")
     user_id2 = verify_user("name2", "pass")
     token2 = create_access_token({"id": user_id2})
-    invite_friend(user_id1, user_id2)
+    invite_friend(user_id1, "name2")
 
     res = client.post("/get_friend_reqs", json={
         "token": token2,
@@ -88,8 +88,8 @@ def test_get_friend_reqs(client, db):
 
     data = res.json()
 
-    assert len(data["friend_requests"]) == 1
-    assert data["friend_requests"][0]["from_user_id"] == user_id1
+    assert len(data) == 1
+    assert data[0]["from_user_id"] == user_id1
 
 def test_get_friends(client, db):
     create_user("name1", "pass")
@@ -97,8 +97,8 @@ def test_get_friends(client, db):
     create_user("name2", "pass")
     user_id2 = verify_user("name2", "pass")
     token1 = create_access_token({"id": user_id1})
-    invite_friend(user_id1, user_id2)
-    accept_friend(user_id2, user_id1)
+    invite_friend(user_id1, "name2")
+    accept_friend(user_id2, "name1")
     res = client.post("/get_friends", json={
         "token": token1,
     })
