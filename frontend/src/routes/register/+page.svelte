@@ -53,7 +53,18 @@
             </div>
 
             <div style="border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.30); background: #FFFFFFB2; box-shadow: 0 25px 50px 0 rgba(0, 0, 0, 0.25);" class="backdrop-blur-sm p-8">
-                <p class="text-red-600">{error_message}</p>
+                {#if error_message}
+                    <div class="mb-5 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-red-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-red-800">{error_message}</p>
+                            </div>
+                        </div>
+                    </div>
+                {/if}
                 <form {onsubmit} class="space-y-5">
                     <div>
                         <label for="username" class="block text-sm font-medium text-gray-700 mb-2 ml-3">
