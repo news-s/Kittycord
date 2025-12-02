@@ -46,8 +46,11 @@
         const data = JSON.parse(event.data);
 
         if(data.type === "add_role") {
-            const role = await FetchData(`role/${data.role_id}/${server_id}/`, "GET");
-            roles.push(role);
+            const role = await FetchData(`role/${data.role_id}/`, "GET");
+            roles.push(role);   
+        }
+        else if(data.type === "remove_role") {
+            roles = roles.filter(role => role.id !== data.role_id);
         }
         else if(data.type === "load_server") {
             server_name = data.server_name
@@ -81,7 +84,7 @@
         }
         else if(data.type === "edit_message") {
             for (const message of messages) {
-                if(message.id !== data.message_id)continue;
+                if(message.message_id !== data.message_id)continue;
 
                 message.content = data.new_content;
                 break;
@@ -93,10 +96,7 @@
 
                 if(data.type === "edit_channel_name") channel.channel_name = data.new_content;
                 else if(data.type === "edit_channel_color")channel.color = data.new_content;
-                else if(data.type === "edit_channel_role_needed") {
-                    channel.role_needed = data.new_content;
-                    roles = await FetchData(`all_user_roles/${$profile?.user_id}/`);
-                };
+                else if(data.type === "edit_channel_role_needed") channel.role_needed = data.role_needed;
 
                 break;
             }

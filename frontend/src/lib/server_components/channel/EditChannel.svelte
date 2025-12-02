@@ -1,7 +1,7 @@
 <script>
     import { FetchData } from "$lib/Fetch";
     
-    let { editing_channel, roles } = $props();
+    let { editing_channel, all_roles } = $props();
 
     let error_message = $state("");
     async function EditChannelName() {
@@ -143,7 +143,7 @@
                 class="px-4 py-3 rounded-xl bg-white/80 border border-pink-200 text-gray-800 placeholder-gray-400 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-300" 
                 style="width: 376px;"
             >
-                {#each roles as role}
+                {#each all_roles as role}
                     <option value={role.id}>{role.role_name}</option>
                 {/each}
             </select>
