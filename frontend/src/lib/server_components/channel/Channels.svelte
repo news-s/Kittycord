@@ -18,8 +18,6 @@
         role_error: null
     });
 
-    let all_roles = $state([]);
-
     async function SwitchChannel(channel_id) {
         if($socket?.readyState !== WebSocket.OPEN || !channel_id)return;
 
@@ -58,7 +56,7 @@
                         onclick={() => SwitchChannel(channel.channel_id)} 
                         class="flex-1 flex items-center gap-2 px-2 py-1.5 rounded text-gray-700 hover:bg-pink-100/60 hover:text-gray-900"
                     >
-                        <span style="color: {channel.color || '#FF00E6'}" class="group-hover/item:brightness-110">#</span>
+                        <span style="color: {channel.color || '#a855f7'}" class="group-hover/item:brightness-110">#</span>
                         <span class="text-sm font-medium">{channel.channel_name}</span>
                     </button>
                     {#if user_permissions?.["Manage channels"] || user_permissions?.["Admin"]}
@@ -67,10 +65,10 @@
                                 editing_channel.state = !editing_channel.state;
                                 editing_channel.id = channel.channel_id;
                                 editing_channel.name = channel.channel_name;
-                                editing_channel.color = channel.color || '#FF00E6';
+                                editing_channel.color = channel.color;
                                 editing_channel.role = channel.channel_role;
 
-                                all_roles = await FetchData(`roles_in_server/${server_id}/`, "GET");
+                                roles = await FetchData(`roles_in_server/${server_id}/`, "GET");
                             }}
                             class="p-1.5 opacity-0 group-hover/item:opacity-100 hover:bg-pink-100/60 rounded transition-opacity"
                             aria-label="Edit channel"
@@ -87,4 +85,4 @@
 </div>
 
 <AddChannel {open} {server_id}/>
-<EditChannel bind:editing_channel={editing_channel} {all_roles}/>
+<EditChannel bind:editing_channel={editing_channel} {roles}/>

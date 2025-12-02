@@ -29,15 +29,11 @@
             }
         );
 
-        if(result.status && result.status != 200) {
-            error_message = await result.json();
-            error_message = error_message.detail;
+        if(result === 409) {
+            error_message = "Username jest zajety";
             return;
         }
-        if(result == "invalid input") {
-            error_message = result;
-            return;
-        }
+        
         if(result != "success")return;
 
         window.location.href = '/thanks';
