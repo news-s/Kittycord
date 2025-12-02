@@ -209,6 +209,14 @@ class Socket:
 
         server_name = get_server_name(msg["content"])["name"]
 
+        res = get_last_messsages_from_channel(50, channels[0]["id"])
+
+        if res["status"] == "error":
+            await self.handle_error(500, "Channel found but failed to get messages")
+            return
+        
+        channels = list(filter(lambda channel: is_user_owner or channel["role_needed"] in roles or channel["role_needed"] == None, channels))
+
         if len(channels) == 0:
             self.current_channel = None
             self.current_server = int(msg["content"])
@@ -221,14 +229,6 @@ class Socket:
                 "is_muted": is_muted,
             })
             return
-
-        res = get_last_messsages_from_channel(50, channels[0]["id"])
-
-        if res["status"] == "error":
-            await self.handle_error(500, "Channel found but failed to get messages")
-            return
-        
-        channels = list(filter(lambda channel: is_user_owner or channel["role_needed"] in roles or channel["role_needed"] == None, channels))
 
         self.current_dm = None
         self.current_channel = channels[0]["id"]
