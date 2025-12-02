@@ -5,7 +5,7 @@
     import { page } from "$app/stores";
 
     import { FetchData } from "$lib/Fetch.js";
-	import Chat from "$lib/server_components/chat/Chat.svelte";
+	import Chat from "$lib/server_components/Chat/Chat.svelte";
 	import Members from "$lib/server_components/Members.svelte";
 	import Channels from "$lib/server_components/channel/Channels.svelte";
 
@@ -95,7 +95,7 @@
                 else if(data.type === "edit_channel_color")channel.color = data.new_content;
                 else if(data.type === "edit_channel_role_needed") {
                     channel.role_needed = data.new_content;
-                    roles = await FetchData(`all_user_roles/${$profile?.user_id}/`);
+                    roles = await FetchData(`all_user_roles/${$profile?.user_id}/${server_id}/`, "GET");
                 };
 
                 break;

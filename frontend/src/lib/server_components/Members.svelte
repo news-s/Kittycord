@@ -20,7 +20,6 @@
         showing_profile.note = profile.note;
         showing_profile.user_id = profile.user_id;
         showing_profile.roles = await FetchData(`all_user_roles/${user_id}/${server_id}/`, "GET");
-
         console.log($state.snapshot(showing_profile.roles));
 
         showing_profile.state = true;

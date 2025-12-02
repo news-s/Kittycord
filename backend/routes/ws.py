@@ -150,7 +150,8 @@ class Socket:
         is_user_owner = get_owner_id(server_id)["owner_id"] == self.user_id
         role_needed = get_role_needed(channel_id)["role_needed"]
 
-        if is_user_owner and (role_needed not in roles and role_needed != None):
+        # allow if user is owner, or channel has no role_needed, or user's roles include role_needed
+        if not (is_user_owner or role_needed == None or role_needed in roles):
             await self.handle_error(403, "User does not have the required role to view this channel")
             return
     
