@@ -12,7 +12,7 @@
 
         error_message = "";
         
-        let data = await FetchData(
+        let result = await FetchData(
             "login",
             "POST",
             {
@@ -21,12 +21,17 @@
             }
         )
 
-        if(data === 401) {
-            error_message = "Zły username albo hasło.";
+        if(result.status && result.status != 200) {
+            error_message = await result.json();
+            error_message = error_message.detail;
+            return;
+        }
+        if(result == "invalid input") {
+            error_message = result;
             return;
         }
         
-        localStorage.setItem('token', data.token);
+        localStorage.setItem('token', result.token);
         window.location.href = '/app/main';
     } 
 </script>
@@ -74,19 +79,6 @@
                         style="border-radius: 16px; border: 1px solid #E5E7EB; background: rgba(255, 255, 255, 0.70);"
                         required 
                     />
-                </div>
-                <div class="flex items-center justify-between text-sm">
-                    <label class="flex items-center cursor-pointer">
-                        <input 
-                            type="checkbox" 
-                            bind:checked={rememberMe}
-                            class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                        />
-                        <span class="ml-2 text-gray-700">Zapamiętaj mnie</span>
-                    </label>
-                    <a href="x.com" class="text-purple-600 hover:text-purple-700 font-medium">
-                        Nie pamiętam hasła
-                    </a>
                 </div>
                 <button 
                     type="submit"

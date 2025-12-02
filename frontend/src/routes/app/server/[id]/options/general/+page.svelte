@@ -39,7 +39,17 @@
             }
         );
 
-        success_message += "Zaktualizowano Nazwe";
+        if(result.status && result.status != 200) {
+            error_message = await result.json();
+            error_message = error_message.detail;
+            return;
+        }
+        if(result == "invalid input") {
+            error_message = result;
+            return;
+        }
+
+        success_message = "Zaktualizowano Nazwe";
     }
 
     async function EditServerLink() {
@@ -75,10 +85,10 @@
         }
 
         if(success_message === "") {
-            success_message += "Zaktualzowano Link"; 
+            success_message = "Zaktualzowano Link"; 
             return;
         }
-        success_message = " i Link"
+        success_message += " i Link"
     }
 
     function UpdateServer() {
