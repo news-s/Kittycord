@@ -2,6 +2,7 @@ from sqlalchemy import insert, delete
 
 from database.roles import get_highest_role, get_role_color
 from database import models
+from database.channels import delete_channel
 
 def join_server(user_id: int, server_id: int):
     db_gen = models.get_db()
@@ -54,7 +55,17 @@ def delete_server(server_id: int):
     db = next(db_gen)
     # Removing users relationship with server
     db.query(models.User_Server).filter_by(server_id=server_id).delete()
-    db.query(models.Channel).filter_by(server_id=server_id).delete()
+    # Delete all channels for this server (and their messages) by calling delete_channel
+    channels = db.query(models.Channel).filter_by(server_id=server_id).all()
+    for c in channels:
+        # delete_channel expects a channel_id
+        delete_channel(channel_id=c.id)
+
+    # Remove roles and bans related to server to avoid FK constraint issues
+    db.query(models.Role).filter_by(server_id=server_id).delete()
+    db.query(models.Ban).filter_by(server_id=server_id).delete()
+
+    # Finally remove the server record
     db.query(models.Server).filter_by(id=server_id).delete()
     db.commit()
     return {'status': "success"}
