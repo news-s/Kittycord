@@ -96,10 +96,12 @@
 
     function HandleEditingChannel() {
         error_message = "";
-
-        EditChannelName();
-        EditChannelColor();
-        EditChannelRole();
+        (async () => {
+            await EditChannelName();
+            await EditChannelColor();
+            await EditChannelRole();
+            if (!error_message) editing_channel.state = false;
+        })();
     }
 
     async function DelteChannel() {
@@ -131,7 +133,7 @@
             />
             <input 
                 type="text" 
-                placeholder="Channel Color" 
+                placeholder="Channel Color (e.g. #ff0000)" 
                 bind:value={editing_channel.color}
                 class="px-4 py-3 rounded-xl bg-white/80 border border-pink-200 text-gray-800 placeholder-gray-400 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-300" 
                 style="width: 376px;"

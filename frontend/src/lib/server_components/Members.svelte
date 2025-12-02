@@ -20,7 +20,6 @@
         showing_profile.note = profile.note;
         showing_profile.user_id = profile.user_id;
         showing_profile.roles = await FetchData(`all_user_roles/${user_id}/${server_id}/`, "GET");
-
         console.log($state.snapshot(showing_profile.roles));
 
         showing_profile.state = true;
@@ -92,7 +91,11 @@
                     onclick={() => ShowProfile(user.user_id)}
                     aria-label={`Show profile for ${user.name}`}
                 >
-                    <img src={user.avatar} alt="avatar" class="w-8 h-8 rounded-full border-2 border-pink-200" />
+                    {#if user.avatar}
+                        <img src={user.avatar} alt="avatar" class="w-8 h-8 rounded-full border-2 border-pink-200" />
+                    {:else}
+                        <div class="w-8 h-8 rounded-full bg-black border-2 border-pink-200"></div>
+                    {/if}
                     <div class="flex-1">
                         <div class="font-semibold text-gray-800">{user.name}</div>
                         <div class="text-xs text-gray-500">{user.status}</div>

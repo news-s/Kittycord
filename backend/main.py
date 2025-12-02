@@ -1,15 +1,19 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import typing
-import json
 import uvicorn
+import os, dotenv
+from database import models
 
-from auth_token import verify_token
-from socket_manager import BroadCastMessage, Broadcaster, Socket
-from routes.login import router as login_router
-from users import servers, users, Message
+from routes import admin_tools, login, profile, channel, server, message, roles, friends, dms, files, ws
+
+dotenv.load_dotenv()
+models.init_db(
+    f'postgresql+psycopg2://{os.getenv("DB_USER")}:{os.getenv("DB_PASSWORD")}@{os.getenv("DB_HOST")}/{os.getenv("DB_NAME")}'
+)
+
 
 app = FastAPI()
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,82 +23,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(login_router)
-
-broadcast = Broadcaster()
-            
-        
-
-@app.websocket("/ws")
-async def ws(websocket: WebSocket):
-    token = websocket.query_params.get("token")
-    if not token:
-        await websocket.close(code=1008)
-        return
-
-    try:
-        user_id = verify_token(token)
-    except HTTPException:
-        await websocket.close(code=1008)
-        return
-
-    await websocket.accept()
-
-    socket = Socket(websocket, int(user_id), 1)
-    broadcast.connections.append(socket)
-    await websocket.send_text(f"Hello {user_id}! You're connected.")
-    try:
-        while True:
-            raw = await websocket.receive_text()
-            msg: dict[str, typing.Any] = json.loads(raw)
-
-            match msg["type"]:
-                case "message":
-                    message = BroadCastMessage(int(user_id), socket.current_channel, msg["content"])
-                    await broadcast.broadcast(message)
-
-                    # TODO database integration
-                    for server in servers:
-                        for channel in server.channels:
-                            if channel.id == socket.current_channel:
-                                channel.messages.append(Message(1, int(user_id), msg["content"]))
-                
-                case "channel":
-                    socket.current_channel = int(msg["content"])
-
-
-
-                    # TODO database integration
-
-                    for server in servers:
-                        for channel in server.channels:
-                            if channel.id == socket.current_channel:
-                                res = {
-                                    "messages": channel.messages
-                                }
-                                await websocket.send_json(json.dumps(res, default=lambda o: o.__dict__))
-
-                case "server":
-                    # TODO database intergration
-
-
-                    for server in servers:
-                        if server.id == msg["content"]:
-                            socket.current_channel = server.channels[0].id
-
-                            res = {
-                                "channels": [channel.name for channel in server.channels],
-                                "messages": server.channels[0].messages,
-                            }
-                            await websocket.send_json(json.dumps(res, default=lambda o: o.__dict__))
-
-                case _:
-                    await websocket.send_text("skull")
-
-
-            await websocket.send_text(f"{user_id} said: {msg}")
-    except WebSocketDisconnect:
-        print(f"User {user_id} disconnected.")
+app.include_router(admin_tools.router)
+app.include_router(login.router)
+app.include_router(profile.router)
+app.include_router(channel.router)
+app.include_router(server.router)
+app.include_router(message.router)
+app.include_router(roles.router)
+app.include_router(friends.router)
+app.include_router(dms.router)
+app.include_router(files.router)
+app.include_router(ws.router)
 
 
 if __name__ == "__main__":

@@ -84,7 +84,12 @@ let friend_tag = $state("");
 
 <div class="flex w-screen h-screen bg-gradient-to-br from-pink-50 to-purple-50">
     <div class="flex flex-col w-[242px] bg-white/30 p-4 gap-4">
-        <div class="font-semibold text-lg mb-2">Znajomi</div>
+        <div class="flex items-center gap-2 font-semibold text-lg mb-2">
+            <svg width="20" height="16" viewBox="0 0 20 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 4C3 2.93913 3.42143 1.92172 4.17157 1.17157C4.92172 0.421427 5.93913 0 7 0C8.06087 0 9.07828 0.421427 9.82843 1.17157C10.5786 1.92172 11 2.93913 11 4C11 5.06087 10.5786 6.07828 9.82843 6.82843C9.07828 7.57857 8.06087 8 7 8C5.93913 8 4.92172 7.57857 4.17157 6.82843C3.42143 6.07828 3 5.06087 3 4ZM0 15.0719C0 11.9937 2.49375 9.5 5.57188 9.5H8.42813C11.5063 9.5 14 11.9937 14 15.0719C14 15.5844 13.5844 16 13.0719 16H0.928125C0.415625 16 0 15.5844 0 15.0719ZM19.0406 16H14.7312C14.9 15.7063 15 15.3656 15 15V14.75C15 12.8531 14.1531 11.15 12.8188 10.0063C12.8938 10.0031 12.9656 10 13.0406 10H14.9594C17.7437 10 20 12.2562 20 15.0406C20 15.5719 19.5688 16 19.0406 16ZM13.5 8C12.5312 8 11.6562 7.60625 11.0219 6.97188C11.6375 6.14062 12 5.1125 12 4C12 3.1625 11.7938 2.37188 11.4281 1.67813C12.0094 1.25312 12.725 1 13.5 1C15.4344 1 17 2.56562 17 4.5C17 6.43437 15.4344 8 13.5 8Z" fill="#8B5A7D"/>
+            </svg>
+            Znajomi
+        </div>
         <div class="flex flex-col gap-2">
             <!-- {#each privateMessages as msg}
                 <div class="flex items-center gap-2">
@@ -97,7 +102,12 @@ let friend_tag = $state("");
 
     <main class="flex-1 flex flex-col px-8 py-6 gap-4">
         <div class="flex items-center gap-4 mb-4">
-            <div class="font-semibold text-lg">Znajomi</div>
+            <div class="flex items-center gap-2 font-semibold text-lg">
+                <svg width="20" height="16" viewBox="0 0 20 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 4C3 2.93913 3.42143 1.92172 4.17157 1.17157C4.92172 0.421427 5.93913 0 7 0C8.06087 0 9.07828 0.421427 9.82843 1.17157C10.5786 1.92172 11 2.93913 11 4C11 5.06087 10.5786 6.07828 9.82843 6.82843C9.07828 7.57857 8.06087 8 7 8C5.93913 8 4.92172 7.57857 4.17157 6.82843C3.42143 6.07828 3 5.06087 3 4ZM0 15.0719C0 11.9937 2.49375 9.5 5.57188 9.5H8.42813C11.5063 9.5 14 11.9937 14 15.0719C14 15.5844 13.5844 16 13.0719 16H0.928125C0.415625 16 0 15.5844 0 15.0719ZM19.0406 16H14.7312C14.9 15.7063 15 15.3656 15 15V14.75C15 12.8531 14.1531 11.15 12.8188 10.0063C12.8938 10.0031 12.9656 10 13.0406 10H14.9594C17.7437 10 20 12.2562 20 15.0406C20 15.5719 19.5688 16 19.0406 16ZM13.5 8C12.5312 8 11.6562 7.60625 11.0219 6.97188C11.6375 6.14062 12 5.1125 12 4C12 3.1625 11.7938 2.37188 11.4281 1.67813C12.0094 1.25312 12.725 1 13.5 1C15.4344 1 17 2.56562 17 4.5C17 6.43437 15.4344 8 13.5 8Z" fill="#8B5A7D"/>
+                </svg>
+                Znajomi
+            </div>
             <button class="px-4 py-1 rounded-xl bg-white/60 text-gray-700 font-semibold shadow">Wszystkie</button>
             <button class="px-4 py-1 rounded-xl bg-white/60 text-gray-700 font-semibold shadow">Online</button>
             <button onclick={() => isopen = !isopen} type="toggle" class="px-4 py-1 rounded-xl bg-blue-100 text-blue-700 font-semibold shadow">Dodaj znajomego</button>
@@ -120,26 +130,60 @@ let friend_tag = $state("");
         </div>
         <div>
         {#if friend_req.length > 0}
-            <div>Zaproszenia</div>
+            <div class="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Oczekujące — {friend_req.length}</div>
         {/if}
+        <div class="flex flex-col gap-1">
         {#each friend_req as fr}
-            <div class="flex items-center justify-between bg-pink-100/80 hover:bg-pink-200 rounded-xl px-4 py-2 gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-pink-300"></div>
-                    <div class="text-sm font-medium text-pink-700">{fr.name}</div>
+            <div class="flex items-center justify-between bg-white hover:bg-gray-50 rounded-lg px-4 py-3 transition-colors duration-150 border-b border-gray-100">
+                <div class="flex items-center gap-3 flex-1">
+                    <div class="relative">
+                        <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
+                        </div>
+                        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white"></span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-900 text-sm">{fr.name}</div>
+                    </div>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick={() => accept_friend_request(fr.name)} class="px-3 py-1 rounded-md bg-pink-500 text-white text-sm hover:bg-pink-600">Akceptuj</button>
-                    <button onclick={() => reject_friend_request(fr.name)} class="px-3 py-1 rounded-md bg-white text-pink-600 border border-pink-200 hover:bg-pink-50 text-sm">Odrzuć</button>
+                <div class="flex gap-2 items-center">
+                    <button 
+                        onclick={() => accept_friend_request(fr.name)} 
+                        class="w-9 h-9 rounded-full bg-gray-100 hover:bg-green-500 flex items-center justify-center transition-all duration-200 group"
+                        aria-label="Akceptuj"
+                    >
+                        <svg class="w-5 h-5 text-gray-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </button>
+                    <button 
+                        onclick={() => reject_friend_request(fr.name)} 
+                        class="w-9 h-9 rounded-full bg-gray-100 hover:bg-red-500 flex items-center justify-center transition-all duration-200 group"
+                        aria-label="Odrzuć"
+                    >
+                        <svg class="w-5 h-5 text-gray-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
         {/each}
         </div>
+        </div>
         <div class="text-xs text-gray-500 mb-2">Znajomi — {friends.length}</div>
-        <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-4 flex-1">
             {#if friends.length === 0}
-                    <span class="">Kitty nie ma jeszcze żadnych przyjaciół</span>
-                    {:else}
+                <div class="flex flex-col items-center justify-center h-full py-16 px-8 text-center">
+                    <div class="mb-4">
+                        <svg class="w-24 h-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Kitty nie ma jeszcze żadnych przyjaciół</h3>
+                    <p class="text-sm text-gray-500 max-w-md">
+                        Wygląda na to, że lista znajomych jest pusta. Dodaj kogoś, aby rozpocząć rozmowy!
+                    </p>
+                </div>
+                {:else}
                     {#each friends as friend}
                 <div class="flex items-center bg-white/70 rounded-xl px-6 py-4 shadow gap-4">
                     <div class="w-10 h-10 rounded-full bg-black relative">
