@@ -36,7 +36,7 @@ class Channel(Base):
     id = Column(Integer, primary_key=True)
     server_id = Column(Integer, ForeignKey("Servers.id"), nullable=False)
     name = Column(String, nullable=False)
-    role_needed = Column(String, nullable=True)
+    role_needed = Column(Integer, ForeignKey("Roles.id"), nullable=True)
     color = Column(String, default="#FF00E6")
 
 class Message(Base):

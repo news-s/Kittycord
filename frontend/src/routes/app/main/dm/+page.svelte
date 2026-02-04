@@ -3,6 +3,7 @@
     import { get } from "svelte/store";
     import { socket, connectedUserId, wsReady } from "$lib/stores/socket.js";
     import { friends, messages, activeDM } from "./store.js";
+    import { FetchData } from "$lib/Fetch.js";
 
     let inputText = "";
     let loadingFriends = true;
@@ -105,25 +106,19 @@
     }
 //ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
     async function addFriend(friendId) {
-    const token = localStorage.getItem("token"); // albo gdzie trzymasz token
+    const token = localStorage.getItem("token");
     if (!token) return alert("Not logged in");
 
     try {
-        const res = await fetch("/friends/add", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ token, friend_id: friendId })
-        });
+        const data = await FetchData("friends/add", "POST", { token: token, friend_id: friendId });
 
-        if (!res.ok) throw new Error(`Error ${res.status}`);
-        const data = await res.json();
-
-        // odśwież listę znajomych
-        await loadFriends();
-
-        alert("Friend added!");
+        if (data && data.status !== 404) {
+            // odśwież listę znajomych
+            await loadFriends();
+            alert("Friend added!");
+        } else {
+            alert("Failed to add friend");
+        }
     } catch (err) {
         console.error(err);
         alert("Failed to add friend");
